@@ -53,7 +53,9 @@ public class SecurityConfig {
                         "/oauth2/**",
                         "/api/auth/password-reset-request",
                         "/api/auth/kakao",
-                        "/api/auth/check-email")
+                        "/api/auth/check-email",
+                        "/api/videos/**",
+                        "/api/videos")
                 .permitAll() // ⬅️ 여기!
                 .anyRequest().authenticated()
         );
