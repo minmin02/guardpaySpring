@@ -3,6 +3,9 @@ package com.example.guardpay.domain.quiz.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Getter
 @Builder
@@ -26,4 +29,8 @@ public class Quiz {
     private String answer;
 
     private Integer point;
+
+    @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<QuizOption> options = new ArrayList<>();
+
 }
