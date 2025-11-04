@@ -1,49 +1,99 @@
 package com.example.guardpay.global.jwt;
 
+import jakarta.servlet.DispatcherType;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-@Component
-@RequiredArgsConstructor
+// ⚠️ @Component 제거!
+// 이 필터는 SecurityConfig에서 수동으로 Bean에 등록됩니다.
+@Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
 
+    // 생성자를 통해 JwtTokenProvider 주입
+    public JwtAuthenticationFilter(JwtTokenProvider provider) {
+        this.jwtTokenProvider = provider;
+    }
+
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain filterChain
+    ) throws ServletException, IOException {
 
-        // 1. 경로 검사 로직을 모두 제거합니다.
+        String requestURI = request.getRequestURI();
+        String dispatchType = request.getDispatcherType().toString();
 
-        // 2. 헤더에서 토큰을 추출합니다.
-        String token = resolveToken(request);
+        log.info("🔍 [JWT Filter] URI: {}, DispatchType: {}", requestURI, dispatchType);
 
-        // 3. 토큰이 유효한 경우에만 인증 정보를 SecurityContext에 저장합니다.
-        if (token != null && jwtTokenProvider.validateToken(token)) {
-            Authentication authentication = jwtTokenProvider.getAuthentication(token);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+        // ✅ FORWARD나 ERROR 디스패치는 건너뛰기
+        if (!DispatcherType.REQUEST.equals(request.getDispatcherType())) {
+            log.info("⏭️ [JWT Filter] Skipping non-REQUEST dispatch: {}", dispatchType);
+            filterChain.doFilter(request, response);
+            return;
         }
 
-        // 4. 다음 필터로 요청을 전달합니다. (이 호출은 한 번만 있어야 합니다)
+        // ⚠️ [수정] 필터에서 경로 검사 로직 (if, shouldNotFilter) 완전 제거
+        // 경로에 대한 접근 제어는 SecurityConfig에서만 담당합니다.
+        // 필터는 헤더가 존재하면 무조건 검증을 시도합니다.
+
+        // Authorization 헤더 확인
+        String authHeader = request.getHeader("Authorization");
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            // 토큰이 없는 경우, SecurityConfig의 authorizeHttpRequests 설정에 따라
+            // 접근이 허용될 수도 (permitAll) 있고, 거부될 수도 (authenticated) 있습니다.
+            // 여기서는 단순히 다음 필터로 넘깁니다.
+            log.info("🔍 [JWT Filter] No JWT token found. Passing to next filter.");
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        log.info("🔍 [JWT Filter] Authorization Header: exists");
+
+        try {
+            String token = authHeader.substring(7);
+            log.info("🔍 [JWT Filter] Token extracted (length: {})", token.length());
+
+            // 토큰 검증
+            if (jwtTokenProvider.validateToken(token)) {
+                // 토큰 타입 확인 (Access Token인지)
+                String tokenType = jwtTokenProvider.getTokenType(token);
+                log.info("🔍 [JWT Filter] Token type: {}", tokenType);
+
+                if ("access".equals(tokenType)) {
+                    // Authentication 생성 및 설정
+                    Authentication authentication = jwtTokenProvider.getAuthentication(token);
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+
+                    log.info("✅ [JWT Filter] Authentication set - Principal: {}, Authorities: {}",
+                            authentication.getPrincipal(),
+                            authentication.getAuthorities());
+                } else {
+                    log.warn("❌ [JWT Filter] Not an access token: {}", tokenType);
+                }
+            } else {
+                log.warn("❌ [JWT Filter] Invalid token");
+            }
+
+        } catch (Exception e) {
+            log.error("❌ [JWT Filter] Error processing token: {}", e.getMessage());
+        }
+
+        // ✅ [중요] 필터 체인 계속 진행
         filterChain.doFilter(request, response);
     }
 
-    private String resolveToken(HttpServletRequest request) {
-        String bearerToken = request.getHeader("Authorization");
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);
-        }
-        return null;
-    }
+    // ⚠️ [수정] shouldNotFilter 메소드 제거
+    // 경로 관리는 SecurityConfig에서만 수행합니다.
 }

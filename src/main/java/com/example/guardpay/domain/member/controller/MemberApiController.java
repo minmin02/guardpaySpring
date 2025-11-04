@@ -3,6 +3,7 @@ package com.example.guardpay.domain.member.controller;
 
 import com.example.guardpay.domain.member.dto.request.KakaoToken;
 import com.example.guardpay.domain.member.dto.request.LoginRequest;
+import com.example.guardpay.domain.member.dto.request.ReissueRequestDto;
 import com.example.guardpay.domain.member.dto.request.SignupRequestDto;
 import com.example.guardpay.domain.member.dto.response.AuthResponseDto;
 import com.example.guardpay.domain.member.dto.response.JwtResponse;
@@ -14,7 +15,9 @@ import org.springframework.web.bind.annotation.*;
 import com.example.guardpay.domain.member.service.GoogleService;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.extern.slf4j.Slf4j; // ⬅️ [추가] 로그 사용
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/auth")
@@ -111,4 +114,49 @@ public class MemberApiController {
         AuthResponseDto response = googleService.loginOrSignup(idToken);
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/reissue")
+    public ResponseEntity<?> reissueToken(
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
+            @RequestBody(required = false) ReissueRequestDto requestDto) {
+
+        String refreshToken = null;
+
+        // 1. 헤더에서 토큰 추출
+        if (authHeader != null && authHeader.toLowerCase().startsWith("bearer ")) {
+            refreshToken = authHeader.substring(7);
+        }
+
+        // 2. 헤더에 없으면 바디에서 추출
+        if (refreshToken == null && requestDto != null && requestDto.getRefreshToken() != null) {
+            refreshToken = requestDto.getRefreshToken();
+        }
+
+        // 3. 토큰이 아예 없는 경우
+        if (refreshToken == null) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", 401);
+            response.put("message", "Refresh token is missing");
+            return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+        }
+
+        try {
+            // 4. MemberLoginService (또는 토큰 전담 서비스)의 재발급 로직 호출
+            // (참고: MemberLoginService에 reissueToken(String refreshToken) 메서드를 구현해야 합니다)
+            JwtResponse newTokens = memberLoginService.reissueToken(refreshToken);
+
+            // 5. 성공 시 새 토큰 반환 (200 OK)
+            return ResponseEntity.ok(newTokens);
+
+        } catch (Exception e) {
+            // 6. 갱신 실패 시 401 반환 (예: refreshToken 만료, 유효하지 않음)
+            log.warn("[reissue] Token reissue failed: {}", e.getMessage());
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", 401);
+            // Flutter 로그에서 본 것과 동일한 형식의 응답을 반환합니다.
+            response.put("message", "UNAUTHORIZED");
+            return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+        }
+    }
+
 }

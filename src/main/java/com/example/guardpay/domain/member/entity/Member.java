@@ -19,7 +19,7 @@ public class Member extends BaseEntity {
 
 @Id
 @GeneratedValue(strategy= GenerationType.IDENTITY)
-private Integer memberId;
+    private Long memberId;
 
 
     @Column(nullable = false, unique = true)
@@ -61,6 +61,9 @@ private Integer memberId;
 
     @Column(length = 20)
     private String role; // 사용자 권한
+
+    @Column(length = 512) // ⬅️ [추가] 리프레시 토큰 저장 필드 (넉넉하게)
+    private String refreshToken;
 
     @Builder
     public Member(String email, String password, String nickname, String role, String provider, String providerId) {
@@ -110,6 +113,9 @@ private Integer memberId;
 
     public void updatePassword(String newPasswordHash) {
         this.password = newPasswordHash;
+    }
+    public void updateRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
     }
 
 }

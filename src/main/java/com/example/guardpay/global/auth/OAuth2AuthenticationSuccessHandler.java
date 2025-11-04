@@ -40,7 +40,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         Member member = memberRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다. email=" + email));
 
-        Integer memberId = member.getMemberId();
+        Long memberId = member.getMemberId();
         String role = normalizeRole(member.getRole()); // ROLE_ 접두어 보정
 
         log.info("[OAuth2 Success] memberId={}, email={}, role={}", memberId, member.getEmail(), role);
@@ -49,9 +49,18 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         String accessToken  = jwtTokenProvider.createAccessToken(memberId, role);
         String refreshToken = jwtTokenProvider.createRefreshToken(memberId);
 
-        // 4) 프론트로 리다이렉트 (딥링크 예시)
+// 4) RefreshToken을 DB에 저장 (업데이트)
+        member.updateRefreshToken(refreshToken); // (Member 엔티티에 이 메서드가 있다고 가정)
+        memberRepository.save(member);
+        // ⬆️⬆️ 여기까지 추가 ⬆️⬆️
+
+        // 5) 프론트로 리다이렉트 (딥링크 예시)
         String targetUrl = createRedirectUrl(accessToken, refreshToken);
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
+
+
+
+
     }
 
     // ROLE_ 접두어가 없으면 붙여주기
