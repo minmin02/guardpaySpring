@@ -5,7 +5,7 @@ import com.example.guardpay.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender; // ⬅️ 메일 발송기
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,6 +51,7 @@ public class PasswordResetService {
 
         // 6. 사용자 이메일로 '원본' 임시 비밀번호 발송
         sendEmail(member.getEmail(), tempPassword);
+
     }
 
     /**

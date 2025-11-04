@@ -3,64 +3,83 @@ package com.example.guardpay.global.config;
 import com.example.guardpay.global.auth.CustomOAuth2UserService;
 import com.example.guardpay.global.auth.OAuth2AuthenticationSuccessHandler;
 import com.example.guardpay.global.jwt.JwtAuthenticationFilter;
+import com.example.guardpay.global.jwt.JwtTokenProvider;
+// import jakarta.annotation.PostConstruct; // 👈 [제거됨]
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+// import org.springframework.security.core.context.SecurityContextHolder; // 👈 [제거됨]
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
 
-// ⚠️ 아래 두 클래스는 직접 생성해야 합니다. (이전 답변 참고)
-// import com.yourpackage.security.oauth.CustomOAuth2UserService;
-// import com.yourpackage.security.oauth.OAuth2AuthenticationSuccessHandler;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-@RequiredArgsConstructor // final 필드를 주입받기 위해 추가
+@RequiredArgsConstructor
 public class SecurityConfig {
 
-    // ✅ final로 두 핸들러/서비스를 선언
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
-    private final JwtAuthenticationFilter jwtAuthenticationFilter; // ⬅️ 3. JwtAuthenticationFilter 주입
+    private final JwtTokenProvider jwtTokenProvider;
+
+    // 👈 [제거됨] @PostConstruct 비동기 설정이 제거되었습니다.
+    /*
+    @PostConstruct
+    public void enableAsyncSecurityContext() {
+        SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
+    }
+    */
+
     //비번 인코딩
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.csrf(csrf -> csrf.disable());
-
         http
+                .csrf(csrf -> csrf.disable())
                 .httpBasic(httpBasic -> httpBasic.disable())
-                .formLogin(formLogin -> formLogin.disable());
+                .formLogin(formLogin -> formLogin.disable())
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                );
 
-        http.sessionManagement(session ->
-                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+        // h2-console을 위한 프레임 옵션 허용
+        http.headers(headers ->
+                headers.frameOptions(frameOptions -> frameOptions.sameOrigin())
         );
+
+        http.cors(cors -> cors.configurationSource(request -> {
+            CorsConfiguration config = new CorsConfiguration();
+            config.setAllowedOrigins(List.of("*"));
+            config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+            config.setAllowedHeaders(List.of("*"));
+            config.setAllowCredentials(false);
+            return config;
+        }));
 
         http.authorizeHttpRequests(auth -> auth
                 .requestMatchers(
+                        "/",
+                        "/h2-console/**", // h2-console 허용
                         "/api/auth/**",
                         "/oauth2/**",
-                        "/api/auth/password-reset-request",
-                        "/api/auth/kakao",
-                        "/api/auth/check-email",
-                        "/api/videos/**",
-                        "/api/videos")
-                .permitAll() // ⬅️ 여기!
+                        "/login/oauth2/**"
+                ).permitAll()
+                .requestMatchers("/api/chat/**").authenticated() // chat 경로는 인증 필요
                 .anyRequest().authenticated()
         );
 
-        // ✅ 여기 추가: 리다이렉트 대신 상태코드/JSON으로 응답
         http.exceptionHandling(ex -> ex
                 .authenticationEntryPoint((req, res, ex1) -> {
                     res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -79,8 +98,13 @@ public class SecurityConfig {
                 .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
         );
 
-        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-        return http.build();
+        // JwtAuthenticationFilter를 UsernamePasswordAuthenticationFilter 전에 추가
+        http.addFilterBefore(
+                new JwtAuthenticationFilter(jwtTokenProvider),
+                UsernamePasswordAuthenticationFilter.class
+        );
 
+        return http.build();
     }
 }
+
