@@ -41,8 +41,8 @@ public class ChatBotController {
             String response = financialEducationService.generateEducationContent(
                     requestDto.getPrompt(),  // 사용자 질문
                     null,                     // analysisData (나중에 추가)
-                    "60-70대",               // ageGroup (나중에 추가)
-                    "금융 취약계층"                    // interests (나중에 추가)
+                    "20-30대",               // ageGroup (나중에 추가)
+                    "일반"                    // interests (나중에 추가)
             );
 
             log.info("✅ [Chat Controller] Response generated successfully");
