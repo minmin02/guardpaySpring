@@ -74,7 +74,8 @@ public class SecurityConfig {
                         "/h2-console/**", // h2-console 허용
                         "/api/auth/**",
                         "/oauth2/**",
-                        "/login/oauth2/**"
+                        "/login/oauth2/**",
+                        "/api/videos/**"
                 ).permitAll()
                 .requestMatchers("/api/chat/**").authenticated() // chat 경로는 인증 필요
                 .anyRequest().authenticated()
