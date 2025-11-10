@@ -4,6 +4,7 @@ import com.example.guardpay.domain.video.dto.req.CategoryWithVideosDto;
 import com.example.guardpay.domain.video.dto.req.PreventionVideoDto;
 import com.example.guardpay.domain.video.dto.req.VideoCategoryDto;
 import com.example.guardpay.domain.video.service.PreventionVideoService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,6 +14,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/videos")
 @RequiredArgsConstructor
+@Tag(name = "금융 취약 계층 교육 영상", description = "취약계층 전용 비디오 영상 페이지 ")
 public class PreventionVideoController {
 
     // 서비스 계층

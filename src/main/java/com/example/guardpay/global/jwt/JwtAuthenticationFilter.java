@@ -47,6 +47,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // 경로에 대한 접근 제어는 SecurityConfig에서만 담당합니다.
         // 필터는 헤더가 존재하면 무조건 검증을 시도합니다.
 
+        // ✅ FORWARD나 ERROR 디스패치는 건너뛰기
+        if (!DispatcherType.REQUEST.equals(request.getDispatcherType())) {
+            log.info("⏭️ [JWT Filter] Skipping non-REQUEST dispatch: {}", dispatchType);
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        // ✅ [추가] Swagger 경로는 JWT 검증 스킵
+        if (requestURI.startsWith("/swagger-ui") ||
+                requestURI.startsWith("/v3/api-docs") ||
+                requestURI.startsWith("/swagger-resources") ||
+                requestURI.equals("/swagger-ui.html")) {
+            log.info("🔓 [JWT Filter] Swagger path detected. Skipping JWT validation.");
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         // Authorization 헤더 확인
         String authHeader = request.getHeader("Authorization");
 

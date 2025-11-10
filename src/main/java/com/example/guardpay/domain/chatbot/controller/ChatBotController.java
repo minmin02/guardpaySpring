@@ -2,6 +2,8 @@ package com.example.guardpay.domain.chatbot.controller;
 
 import com.example.guardpay.domain.chatbot.dto.req.ChatRequestDto;
 import com.example.guardpay.domain.chatbot.service.FinancialEducationService; // ← 변경
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -20,10 +22,12 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/chat")
 @RequiredArgsConstructor
+@Tag(name = "챗봇", description = "챗봇 서비스")
 public class ChatBotController {
 
-    private final FinancialEducationService financialEducationService; // ← 변경
+    private final FinancialEducationService financialEducationService;
 
+    @Operation(summary = "챗봇 입장 API", description = "프롬프트를 받고 작업시작")
     @PostMapping("/financial-advice")
     public ResponseEntity<?> getAdvice(
             @RequestBody ChatRequestDto requestDto,
