@@ -84,6 +84,7 @@ public class QuizService {
 
     // ✅ 4. 퀴즈 정답 제출
     public Map<String, Object> submitAnswer(Long quizId, Long selectedOptionId) {
+
         Quiz quiz = quizRepository.findById(quizId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 퀴즈입니다."));
         QuizOption selected = quizOptionRepository.findById(selectedOptionId)

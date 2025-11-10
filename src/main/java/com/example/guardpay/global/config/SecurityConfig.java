@@ -75,7 +75,12 @@ public class SecurityConfig {
                         "/api/auth/**",
                         "/oauth2/**",
                         "/login/oauth2/**",
-                        "/api/videos/**"
+                        "/api/videos/**",
+                        "/swagger-ui/**",
+                        "/swagger-ui.html",
+                        "/v3/api-docs/**",
+                        "/swagger-resources/**",
+                        "/webjars/**"
                 ).permitAll()
                 .requestMatchers("/api/chat/**").authenticated() // chat 경로는 인증 필요
                 .anyRequest().authenticated()

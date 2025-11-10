@@ -8,6 +8,8 @@ import com.example.guardpay.domain.member.dto.request.SignupRequestDto;
 import com.example.guardpay.domain.member.dto.response.AuthResponseDto;
 import com.example.guardpay.domain.member.dto.response.JwtResponse;
 import com.example.guardpay.domain.member.service.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +23,7 @@ import lombok.extern.slf4j.Slf4j; // ⬅️ [추가] 로그 사용
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/auth")
+@Tag(name = "로그인/회원/인증", description = "인증관련 로그인/회원가입 로직")
 public class MemberApiController {
 
     private final MemberSignService memberService; // 3. final 키워드 추가
@@ -28,13 +31,14 @@ public class MemberApiController {
     private final MemberLoginService memberLoginService;
     private final AuthService kakaoAuthService; // 신규유저, 기존 유저확인 로직(카카오)
 
-    private final PasswordResetService passwordResetService; // ⬅️ 새로 주입
+    private final PasswordResetService passwordResetService; //
 
     private final checkEmailService checkEmailService;
 
     private final GoogleService googleService;
 
     //폼 회원가입
+    @Operation(summary = "회원가입", description = "폼 회원가입")
     @PostMapping("/signup")
     // 4. 반환 타입을 Map<String, Object>로 수정
     public ResponseEntity<Map<String, Object>> signUp(@RequestBody SignupRequestDto signUpRequestDto) {
@@ -53,6 +57,7 @@ public class MemberApiController {
 
 //카카오 회원 가입
     @PostMapping("/kakao")
+    @Operation(summary = "회원가입", description = "소셜 카카오 회원가입")
     public ResponseEntity<AuthResponseDto> kakaoAuth(@RequestBody KakaoToken kakaoTokenDto) {
         // Service 로직을 호출하고 결과를 바로 반환
         AuthResponseDto responseDto = kakaoAuthService.loginOrSignup(kakaoTokenDto.getAccessToken());
@@ -62,6 +67,7 @@ public class MemberApiController {
     // 폼 로그인
 
     @PostMapping("/login") // ⬅️ @GetMapping이 아닌 @PostMapping
+    @Operation(summary = "폼 로그인 ", description = "폼 로그인 jwt 토큰 발행 로직 ")
     public ResponseEntity<JwtResponse> login(@RequestBody LoginRequest loginRequest) {
 
         // @RequestBody:
@@ -76,6 +82,7 @@ public class MemberApiController {
 
     //임시 비번 메일 발송
     @PostMapping("/password-reset-request")
+    @Operation(summary = "비밃번호 재설정", description = "비밀번호 재설정 로직, SMTP 라이블러리 이용 ")
     public ResponseEntity<Map<String, Object>> requestPasswordReset(
             @RequestBody Map<String, String> requestBody) {
 
@@ -93,6 +100,7 @@ public class MemberApiController {
     }
 
     //이메일 중복 체크
+    @Operation(summary = "이메일 중복 체크 ", description = "이메일 중복 체크 로직 ")
     @GetMapping("/check-email")
     public ResponseEntity<Map<String, String>> checkEmail(@RequestParam("email") String email) {
         Map<String, String> response = new HashMap<>();
