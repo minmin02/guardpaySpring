@@ -80,7 +80,8 @@ public class SecurityConfig {
                         "/swagger-ui.html",
                         "/v3/api-docs/**",
                         "/swagger-resources/**",
-                        "/webjars/**"
+                        "/webjars/**",
+                        "/api/quiz/**"
                 ).permitAll()
                 .requestMatchers("/api/chat/**").authenticated() // chat 경로는 인증 필요
                 .anyRequest().authenticated()

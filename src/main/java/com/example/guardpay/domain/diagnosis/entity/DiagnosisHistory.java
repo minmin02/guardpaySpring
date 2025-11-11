@@ -3,6 +3,7 @@ package com.example.guardpay.domain.diagnosis.entity;
 import com.example.guardpay.domain.member.entity.Member;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
 
@@ -23,7 +24,11 @@ public class DiagnosisHistory {
 
     private Integer score;
 
+
+    @Column(name = "final_grade")
     private String finalGrade;
 
+    @CreatedDate
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 }
