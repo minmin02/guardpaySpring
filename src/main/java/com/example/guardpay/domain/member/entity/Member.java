@@ -118,4 +118,10 @@ public class Member extends BaseEntity {
         this.refreshToken = refreshToken;
     }
 
+    public void addExp(int expToAdd) {
+        this.exp += expToAdd;
+        this.points += expToAdd; // 포인트도 함께 적립할 경우
+    }
+
+
 }
