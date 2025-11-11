@@ -1,5 +1,6 @@
 package com.example.guardpay.domain.diagnosis.service;
 
+import com.example.guardpay.domain.diagnosis.dto.request.DiagnosisRequest;
 import com.example.guardpay.domain.diagnosis.entity.DiagnosisHistory;
 import com.example.guardpay.domain.diagnosis.repository.DiagnosisHistoryRepository;
 import com.example.guardpay.domain.member.entity.Member;
@@ -26,7 +27,7 @@ public class DiagnosisService {
     private final DiagnosisHistoryRepository diagnosisHistoryRepository;
     private final JwtTokenProvider jwtTokenProvider;
 
-    public Map<String, Object> submitDiagnosis(String jwtToken, List<Map<String, Object>> answers) {
+    public Map<String, Object> submitDiagnosis(String jwtToken, List<DiagnosisRequest.AnswerDto> answers) {
         // ✅ JWT 토큰 검증 및 유저 추출
         if (!jwtTokenProvider.validateToken(jwtToken)) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다.");
@@ -39,13 +40,21 @@ public class DiagnosisService {
         Map<Long, Integer> categoryHighestLevel = new HashMap<>();
 
         // ✅ 정답 채점
-        for (Map<String, Object> answer : answers) {
-            Long quizId = ((Number) answer.get("quizId")).longValue();
-            Long selectedOptionId = ((Number) answer.get("selectedAnswer")).longValue();
+        for (DiagnosisRequest.AnswerDto answer : answers) {
+            System.out.println("🧩 요청으로 들어온 데이터: " + answer);
+            if (answer.getQuizID() == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "퀴즈 ID가 누락되었습니다.");
+            }
+            if (answer.getSelectedAnswer() == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "선택한 보기가 누락되었습니다.");
+            }
+
+            Long quizId = answer.getQuizID();
+            Long selectedAnswerId = answer.getSelectedAnswer();
 
             Quiz quiz = quizRepository.findById(quizId)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "존재하지 않는 퀴즈입니다."));
-            QuizOption selected = quizOptionRepository.findById(selectedOptionId)
+            QuizOption selected = quizOptionRepository.findById(selectedAnswerId)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "존재하지 않는 보기입니다."));
 
             if (Boolean.TRUE.equals(selected.getIsCorrect())) {
