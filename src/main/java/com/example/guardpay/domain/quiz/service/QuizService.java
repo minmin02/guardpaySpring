@@ -1,5 +1,7 @@
 package com.example.guardpay.domain.quiz.service;
 
+import com.example.guardpay.domain.member.entity.Member;
+import com.example.guardpay.domain.member.repository.MemberRepository;
 import com.example.guardpay.domain.quiz.entity.*;
 import com.example.guardpay.domain.quiz.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +20,7 @@ public class QuizService {
     private final QuizHistoryRepository quizHistoryRepository;
     private final ProgressRepository progressRepository;
     private final MemberLevelRepository memberLevelRepository;
+    private final MemberRepository memberRepository; // ✅ 추가
 
     // ✅ 1. 카테고리 목록 조회
     public Map<String, Object> getCategories() {
@@ -72,7 +75,6 @@ public class QuizService {
         data.put("quizId", quiz.getQuizId());
         data.put("question", quiz.getQuestion());
         data.put("options", options);
-        data.put("answer", quiz.getAnswer());
         data.put("point", quiz.getPoint());
 
         return Map.of(
@@ -82,9 +84,7 @@ public class QuizService {
         );
     }
 
-    // ✅ 4. 퀴즈 정답 제출
-    public Map<String, Object> submitAnswer(Long quizId, Long selectedOptionId) {
-
+public Map<String, Object> submitAnswer(Long memberId, Long quizId, Long selectedOptionId) {
         Quiz quiz = quizRepository.findById(quizId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 퀴즈입니다."));
         QuizOption selected = quizOptionRepository.findById(selectedOptionId)
@@ -93,13 +93,30 @@ public class QuizService {
         boolean isCorrect = selected.getIsCorrect();
         int gainExp = isCorrect ? quiz.getPoint() : 0;
 
+        // ✅ 정답일 경우 Member 포인트 반영
+        if (isCorrect) {
+            Member member = memberRepository.findById(memberId)
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+            member.addExp(gainExp);
+            memberRepository.save(member);
+        }
+
+        // ✅ 풀이 기록 저장
+        QuizHistory history = QuizHistory.builder()
+                .member(memberRepository.findById(memberId).orElseThrow())
+                .quiz(quiz)
+                .gainExp(gainExp)
+                .answerAt(java.time.LocalDateTime.now())
+                .build();
+        quizHistoryRepository.save(history);
+
         Map<String, Object> data = new HashMap<>();
         data.put("isCorrect", isCorrect);
         data.put("gainExp", gainExp);
 
         return Map.of(
                 "status", 200,
-                "message", isCorrect ? "정답입니다!" : "오답입니다.",
+                "message", isCorrect ? "정답입니다! 포인트가 적립되었습니다." : "오답입니다.",
                 "data", data
         );
     }
