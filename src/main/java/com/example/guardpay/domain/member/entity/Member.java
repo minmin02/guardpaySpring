@@ -6,7 +6,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
-
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -17,8 +16,8 @@ import java.util.UUID;
 @AllArgsConstructor
 public class Member extends BaseEntity {
 
-@Id
-@GeneratedValue(strategy= GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy= GenerationType.IDENTITY)
     private Long memberId;
 
 
@@ -65,6 +64,9 @@ public class Member extends BaseEntity {
     @Column(length = 512) // ⬅️ [추가] 리프레시 토큰 저장 필드 (넉넉하게)
     private String refreshToken;
 
+    @Column(length = 512)
+    private String profileImageUrl;
+
     @Builder
     public Member(String email, String password, String nickname, String role, String provider, String providerId) {
         this.email = email;
@@ -87,11 +89,8 @@ public class Member extends BaseEntity {
         Member member = new Member();
         member.email = email;
         member.nickname = nickname;
-
         member.provider = provider;
         member.providerId = providerId;
-
-
 
         // 소셜 로그인 사용자는 비밀번호를 사용하지 않으므로, 보안을 위해 임의의 값을 할당
         member.password = UUID.randomUUID().toString();
@@ -123,5 +122,10 @@ public class Member extends BaseEntity {
         this.points += expToAdd; // 포인트도 함께 적립할 경우
     }
 
+
+    // 프로필 이미지만 업데이트
+    public void updateProfileImage(String profileImageUrl) {
+        this.profileImageUrl = profileImageUrl;
+    }
 
 }
