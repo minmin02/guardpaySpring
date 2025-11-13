@@ -3,11 +3,13 @@ package com.example.guardpay.domain.diagnosis.service;
 import com.example.guardpay.domain.diagnosis.dto.request.DiagnosisRequest;
 import com.example.guardpay.domain.diagnosis.entity.DiagnosisHistory;
 import com.example.guardpay.domain.diagnosis.repository.DiagnosisHistoryRepository;
+import com.example.guardpay.domain.member.data.Grade;
 import com.example.guardpay.domain.member.entity.Member;
 import com.example.guardpay.domain.member.repository.MemberRepository;
 import com.example.guardpay.domain.quiz.entity.*;
 import com.example.guardpay.domain.quiz.repository.*;
 import com.example.guardpay.global.jwt.JwtTokenProvider;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -84,7 +86,7 @@ public class DiagnosisService {
         );
     }
 
-
+    @Transactional
     public Map<String, Object> submitDiagnosis(String jwtToken, List<DiagnosisRequest.AnswerDto> answers) {
         System.out.println("🧩 제출된 답변들: " + answers);
         // ✅ JWT 토큰 검증 및 유저 추출
@@ -115,7 +117,6 @@ public class DiagnosisService {
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "존재하지 않는 퀴즈입니다."));
             QuizOption selected = quizOptionRepository.findById(selectedAnswerId)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "존재하지 않는 보기입니다."));
-
             if (Boolean.TRUE.equals(selected.getIsCorrect())) {
                 correctCount++;
 
@@ -125,22 +126,12 @@ public class DiagnosisService {
                 categoryHighestLevel.merge(categoryId, quizLevel, Math::max);
             }
         }
-
         // ✅ 점수 계산 및 등급 부여
         int score = correctCount * 10;
         String finalGrade = getGrade(score);
-
-        // ✅ 각 카테고리별 최고 난이도를 MemberLevel에 반영
-        categoryHighestLevel.forEach((categoryId, level) -> {
-            MemberLevel ml = MemberLevel.builder()
-                    .member(member)
-                    .category(Category.builder().categoryId(categoryId).build())
-                    .level(level)
-                    .updateAt(LocalDateTime.now())
-                    .build();
-            memberLevelRepository.save(ml);
-        });
-
+        // ✅ Member 테이블에 등급 저장
+        member.setGrade(finalGrade);
+        memberRepository.save(member);
         // ✅ 결과 저장
         DiagnosisHistory history = DiagnosisHistory.builder()
                 .member(member)
@@ -148,7 +139,6 @@ public class DiagnosisService {
                 .finalGrade(finalGrade)
                 .createdAt(LocalDateTime.now())
                 .build();
-
         diagnosisHistoryRepository.save(history);
         System.out.println(Map.of(
                 "status", 201,
