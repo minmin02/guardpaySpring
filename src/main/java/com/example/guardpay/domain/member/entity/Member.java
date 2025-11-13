@@ -11,6 +11,7 @@ import java.util.UUID;
 
 @Entity
 @Getter
+@Setter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -34,6 +35,7 @@ public class Member extends BaseEntity {
     private int points; // 포인트
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "grade")
     private Grade grade;
 
     @Column(length = 20)
@@ -67,6 +69,7 @@ public class Member extends BaseEntity {
     @Column(length = 512)
     private String profileImageUrl;
 
+
     @Builder
     public Member(String email, String password, String nickname, String role, String provider, String providerId) {
         this.email = email;
@@ -74,7 +77,7 @@ public class Member extends BaseEntity {
         this.nickname = nickname;
 
         this.points = 0;
-        this.grade = Grade.BRONZE;
+        this.grade = Grade.주의_필요;
         this.status = "ACTIVE"; // 예: 활성 상태를 기본값으로 지정
         this.exp = 0;
         this.fontSize = 16; // 예: 기본 폰트 크기
@@ -97,7 +100,7 @@ public class Member extends BaseEntity {
         member.role = "ROLE_USER"; // 기본 권한 부여
         // ... grade, points 등 기타 필드 기본값 설정 ...
         member.points = 0;
-        member.grade = Grade.BRONZE;
+        member.grade = Grade.주의_필요;
         member.status = "ACTIVE"; // 예: 활성 상태를 기본값으로 지정
         member.exp = 0;
         member.fontSize = 16;
@@ -128,4 +131,7 @@ public class Member extends BaseEntity {
         this.profileImageUrl = profileImageUrl;
     }
 
+    public void setGrade(String finalGrade) {
+        this.grade = Grade.valueOf(finalGrade.replace(" ", "_"));
+    }
 }
