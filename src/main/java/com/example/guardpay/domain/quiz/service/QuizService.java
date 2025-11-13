@@ -41,6 +41,27 @@ public class QuizService {
     }
 
     // ✅ 2. 카테고리별 퀴즈 목록 조회
+    public Map<String, Object> getQuizzesByCategory(Long categoryId, int level) {
+        List<Quiz> quizzes = quizRepository.findByCategoryIdAndLevel(categoryId, level);
+
+        List<Map<String, Object>> quizList = quizzes.stream()
+                .map(q -> {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("quizId", q.getQuizId());
+                    map.put("question", q.getQuestion());
+                    map.put("level", q.getLevel());
+                    map.put("point", q.getPoint());
+                    return map;
+                })
+                .collect(Collectors.toList());
+
+        return Map.of(
+                "status", 200,
+                "message", "퀴즈 목록 조회 성공",
+                "data", Map.of("quizzes", quizList)
+        );
+    }
+
     public Map<String, Object> getQuizzesByCategory(Long categoryId) {
         List<Quiz> quizzes = quizRepository.findByCategoryId(categoryId);
 

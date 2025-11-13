@@ -32,6 +32,12 @@ public class QuizApiController {
         return ResponseEntity.ok(quizService.getQuizzesByCategory(categoryId));
     }
 
+    @GetMapping("/{categoryId}/{level}/list")
+    @Operation(summary = "카테고리 문제 조회", description = "카테고리 아이디별 전체 문제 조회")
+    public ResponseEntity<Map<String, Object>> getQuizzes(@PathVariable Long categoryId, @PathVariable int level) {
+        return ResponseEntity.ok(quizService.getQuizzesByCategory(categoryId, level));
+    }
+
     @GetMapping("/{quizId}")
     @Operation(summary = "퀴즈", description = "퀴즈 조회")
     public ResponseEntity<Map<String, Object>> getQuizDetail(@PathVariable Long quizId) {
