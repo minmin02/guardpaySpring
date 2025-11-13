@@ -11,6 +11,7 @@ public class DiagnosisRequest {
 
     private List<AnswerDto> answers;
 
+    // 퀴즈 id, 선택한 답
     @Getter
     @Setter
     public static class AnswerDto {
