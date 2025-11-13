@@ -30,13 +30,7 @@ public class SecurityConfig {
     private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
     private final JwtTokenProvider jwtTokenProvider;
 
-    // 👈 [제거됨] @PostConstruct 비동기 설정이 제거되었습니다.
-    /*
-    @PostConstruct
-    public void enableAsyncSecurityContext() {
-        SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
-    }
-    */
+
 
     //비번 인코딩
     @Bean
