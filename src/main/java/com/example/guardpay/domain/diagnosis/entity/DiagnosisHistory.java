@@ -16,6 +16,7 @@ public class DiagnosisHistory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "diagnosis_history_id")
     private Long historyId;
 
     @ManyToOne(fetch = FetchType.LAZY)
