@@ -95,7 +95,9 @@ public class DiagnosisService {
         return Map.of(
                 "status", 201,
                 "message", "진단 결과가 성공적으로 제출되었습니다.",
-                "data", Map.of("historyId", history.getHistoryId())
+                "data", Map.of(
+                        "historyId", history.getHistoryId(),
+                        "finalGrade", finalGrade)
         );
     }
 
