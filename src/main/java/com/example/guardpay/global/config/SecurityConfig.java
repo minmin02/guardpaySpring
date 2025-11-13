@@ -79,7 +79,7 @@ public class SecurityConfig {
                         "/api/v1/diagnoses/**"
                 ).permitAll()
                 .requestMatchers("/api/chat/**").authenticated() // chat 경로는 인증 필요
-                .anyRequest().authenticated()
+                .anyRequest().permitAll()
         );
 
         http.exceptionHandling(ex -> ex

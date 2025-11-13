@@ -19,6 +19,12 @@ public class DiagnosisApiController {
 
     private final DiagnosisService diagnosisService;
 
+    @GetMapping("/questions")
+    @Operation(summary = "문제 조회", description = "역량진단 문제 조회")
+    public ResponseEntity<Map<String, Object>> getDiagnosisQuestions() {
+        return ResponseEntity.ok(diagnosisService.getDiagnosisQuestions());
+    }
+
     @PostMapping("/submit")
     @Operation(summary = "제출", description = "역량진단 제출")
     public ResponseEntity<Map<String, Object>> submitDiagnosis(
