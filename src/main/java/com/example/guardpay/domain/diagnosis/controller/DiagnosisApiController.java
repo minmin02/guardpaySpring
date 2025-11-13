@@ -33,6 +33,5 @@ public class DiagnosisApiController {
     @Operation(summary = "이력 조회", description = "역량진단 제출 이력 조회")
     public ResponseEntity<Map<String, Object>> getHistory(@PathVariable Long historyId) {
         return ResponseEntity.ok(diagnosisService.getDiagnosisHistory(historyId));
-
     }
 }
