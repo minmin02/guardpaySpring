@@ -75,10 +75,23 @@ public class SecurityConfig {
                         "/v3/api-docs/**",
                         "/swagger-resources/**",
                         "/webjars/**",
-                        "/api/quiz/**",
-                        "/api/v1/diagnoses/**"
+                        //"/api/quiz/**",
+                        "/api/v1/diagnoses/**",
+
+                        // ⬇️ 1. 퀴즈 API 중 '조회' API들만 permitAll()에 둡니다.
+                        "/api/quiz/categories",
+                        "/api/quiz/{categoryId}/list",
+                        "/api/quiz/{categoryId}/{level}/list",
+                        "/api/quiz/{quizId}"
                 ).permitAll()
-                .requestMatchers("/api/chat/**").authenticated() // chat 경로는 인증 필요
+                .requestMatchers(
+                        "/api/chat/**",
+                        // ⬇️ 퀴즈 API 중 인증이 필요한 경로들
+                        "/api/quiz/history",
+                        "/api/quiz/progress",
+                        "/api/quiz/level",
+                        "/api/quiz/{quizId}/submit"
+                ).authenticated() // chat 경로는 인증 필요
                 .anyRequest().permitAll()
         );
 

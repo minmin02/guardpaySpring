@@ -88,8 +88,14 @@ public class QuizService {
         Quiz quiz = quizRepository.findById(quizId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 퀴즈입니다."));
 
-        List<String> options = quizOptionRepository.findByQuiz_QuizId(quizId).stream()
-                .map(QuizOption::getOptionText)
+        // ❗️ 수정된 부분: List<String> 대신 List<Map<String, Object>> 반환
+        List<Map<String, Object>> options = quizOptionRepository.findByQuiz_QuizId(quizId).stream()
+                .map(opt -> {
+                    Map<String, Object> optionMap = new HashMap<>();
+                    optionMap.put("optionId", opt.getOptionId());
+                    optionMap.put("optionText", opt.getOptionText());
+                    return optionMap;
+                })
                 .collect(Collectors.toList());
 
         Map<String, Object> data = new HashMap<>();
