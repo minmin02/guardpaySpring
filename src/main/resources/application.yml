@@ -28,7 +28,7 @@ spring:
     password:
   jpa:
     hibernate:
-      ddl-auto: update  # ??? ??? ??? ?? ??
+      ddl-auto: create-drop  # ??? ??? ??? ?? ??
     show-sql: true
     properties:
       hibernate:
@@ -57,7 +57,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: create-drop   # ?? DB?? update ?? ??
+      ddl-auto: update   # ?? DB?? update ?? ??
     show-sql: true
     properties:
       hibernate:

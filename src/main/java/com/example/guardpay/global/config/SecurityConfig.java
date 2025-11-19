@@ -90,7 +90,8 @@ public class SecurityConfig {
                         "/api/quiz/history",
                         "/api/quiz/progress",
                         "/api/quiz/level",
-                        "/api/quiz/{quizId}/submit"
+                        "/api/quiz/{quizId}/submit",
+                        "/api/v1/banks/"
                 ).authenticated() // chat 경로는 인증 필요
                 .anyRequest().permitAll()
         );
