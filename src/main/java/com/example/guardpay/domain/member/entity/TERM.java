@@ -1,7 +1,6 @@
 package com.example.guardpay.domain.member.entity;
 
 
-import com.example.guardpay.domain.bank.entity.Bank;
 import jakarta.persistence.*;
 import lombok.*;
 

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kakao Map</title>
+    <style>
+        * { margin: 0; padding: 0; }
+        html, body { width: 100%; height: 100%; overflow: hidden; }
+        #map { width: 100%; height: 100%; }
+    </style>
+</head>
+<body>
+<div id="map"></div>
+
+<script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=db361439b77ef8d4fab2c9ca9d5ff531"></script>
+
+<script>
+    var map;
+    var myLocationMarker = null; // 내 위치 마커
+    var bankMarkers = []; // 은행 마커들
+
+    window.onload = function() {
+        if (typeof kakao === 'undefined' || typeof kakao.maps === 'undefined') {
+            console.error('❌ Kakao SDK not loaded');
+            return;
+        }
+
+        console.log('✅ Kakao SDK loaded');
+
+        var container = document.getElementById('map');
+        var options = {
+            center: new kakao.maps.LatLng(37.5665, 126.9780),
+            level: 3
+        };
+
+        map = new kakao.maps.Map(container, options);
+
+        if (window.MapLoadedChannel) {
+            MapLoadedChannel.postMessage('loaded');
+        }
+
+        // 지도 클릭 이벤트 - 내 위치 설정
+        kakao.maps.event.addListener(map, 'click', function(mouseEvent) {
+            var latlng = mouseEvent.latLng;
+
+            // 기존 내 위치 마커 삭제
+            if (myLocationMarker) {
+                myLocationMarker.setMap(null);
+            }
+
+            // 새 내 위치 마커 생성 (파란색)
+            var imageSrc = 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png';
+            var imageSize = new kakao.maps.Size(40, 42);
+            var markerImage = new kakao.maps.MarkerImage(imageSrc, imageSize);
+
+            myLocationMarker = new kakao.maps.Marker({
+                position: latlng,
+                map: map,
+                image: markerImage,
+                title: '내 위치'
+            });
+
+            // Flutter로 위치 전달
+            if (window.FlutterChannel) {
+                FlutterChannel.postMessage(
+                    JSON.stringify({
+                        lat: latlng.getLat(),
+                        lng: latlng.getLng()
+                    })
+                );
+            }
+        });
+    };
+
+    // 은행 마커 추가 (초록색)
+    window.addBankMarker = function(lat, lng, title, address) {
+        if (!map) return;
+
+        try {
+            var position = new kakao.maps.LatLng(lat, lng);
+            var marker = new kakao.maps.Marker({
+                position: position,
+                map: map,
+                title: title
+            });
+
+            var infowindow = new kakao.maps.InfoWindow({
+                content: '<div style="padding:8px;font-size:12px;width:220px;">' +
+                    '<strong style="color:#2E7D32;">🏦 ' + title + '</strong><br>' +
+                    '<span style="color:#666;">' + address + '</span></div>'
+            });
+
+            kakao.maps.event.addListener(marker, 'click', function() {
+                infowindow.open(map, marker);
+            });
+
+            bankMarkers.push(marker);
+        } catch (error) {
+            console.error('Error adding bank marker:', error);
+        }
+    };
+
+    // 은행 마커만 삭제 (내 위치는 유지)
+    window.clearBankMarkers = function() {
+        for (var i = 0; i < bankMarkers.length; i++) {
+            bankMarkers[i].setMap(null);
+        }
+        bankMarkers = [];
+    };
+</script>
+</body>
+</html>
