@@ -6,19 +6,19 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
 @Getter
-@Setter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 public class Member extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy= GenerationType.IDENTITY)
+@Id
+@GeneratedValue(strategy= GenerationType.IDENTITY)
     private Long memberId;
 
 
@@ -92,8 +92,11 @@ public class Member extends BaseEntity {
         Member member = new Member();
         member.email = email;
         member.nickname = nickname;
+
         member.provider = provider;
         member.providerId = providerId;
+
+
 
         // 소셜 로그인 사용자는 비밀번호를 사용하지 않으므로, 보안을 위해 임의의 값을 할당
         member.password = UUID.randomUUID().toString();
@@ -138,4 +141,15 @@ public class Member extends BaseEntity {
     public int getBalance() {return this.points;}
 
     public void setBalance(int updatedBalance) {this.points = updatedBalance;}
+    // 프로필 일괄 수정
+    public void updateProfile(String nickname, String passwordHash, Grade grade) {
+        if (nickname != null && !nickname.trim().isEmpty()) {
+            this.nickname = nickname;
+        }
+        if (passwordHash != null && !passwordHash.trim().isEmpty()) {
+            this.password = passwordHash;
+        }
+    }
+
+
 }
