@@ -134,4 +134,8 @@ public class Member extends BaseEntity {
     public void setGrade(String finalGrade) {
         this.grade = Grade.valueOf(finalGrade.replace(" ", "_"));
     }
+
+    public int getBalance() {return this.points;}
+
+    public void setBalance(int updatedBalance) {this.points = updatedBalance;}
 }
