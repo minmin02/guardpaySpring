@@ -28,7 +28,9 @@ public class BeneficiaryService {
                     "id", b.getId(),
                     "nickname", b.getNickname(),
                     "bankName", b.getBankName(),
-                    "accountNumber", b.getAccountNumber()
+                    "accountNumber", b.getAccountNumber(),
+                    // 추가
+                    "accountHolderName", b.getAccountHolderName()
             ));
         });
 
