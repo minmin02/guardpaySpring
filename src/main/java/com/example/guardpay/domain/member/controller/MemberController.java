@@ -1,6 +1,8 @@
 package com.example.guardpay.domain.member.controller;
 
 import com.example.guardpay.domain.member.dto.request.MemberDto;
+import com.example.guardpay.domain.member.entity.Member;
+import com.example.guardpay.domain.member.repository.MemberRepository;
 import com.example.guardpay.domain.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -10,12 +12,16 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/members")
 @RequiredArgsConstructor
 public class MemberController {
 
     private final MemberService memberService;
+    private final MemberRepository memberRepository;
 
     /**
      * 회원 정보 조회
@@ -82,5 +88,22 @@ public class MemberController {
 
     // 로그아웃 ->
 
+
+    // 등급 조회
+    @GetMapping("/me/grade")
+    public ResponseEntity<?> getMyGrade(@AuthenticationPrincipal UserDetails userDetails) {
+
+        // 1. 🚨 수정 포인트: ID 추출 (Email이 아니라 ID로 검색해야 함)
+        Long memberId = extractMemberId(userDetails);
+
+        // 2. 🚨 수정 포인트: findByEmail -> findById로 변경
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        Map<String, String> response = new HashMap<>();
+        response.put("grade", member.getGrade().name());
+
+        return ResponseEntity.ok(response);
+    }
 
 }
