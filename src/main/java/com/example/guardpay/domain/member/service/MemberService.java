@@ -26,25 +26,29 @@ public class MemberService {
      */
     @Transactional
     public MemberDto.UpdateProfileResponse updateProfile(Long memberId, MemberDto.UpdateProfileRequest request) {
-        // 1. 회원 조회
+
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
 
-        // 2. 비밀번호 변경 로직
-        String encodedPassword = null;
+        // 🔹 닉네임 변경 로직
+        if (request.getNickname() != null && !request.getNickname().trim().isEmpty()) {
+            member.updateNickname(request.getNickname());
+        }
+
+        // 🔹 비밀번호 변경 로직
         if (request.getPassword() != null && !request.getPassword().trim().isEmpty()) {
-            // 현재 비밀번호 검증
             if (request.getCurrentPassword() == null || request.getCurrentPassword().trim().isEmpty()) {
                 throw new IllegalArgumentException("현재 비밀번호를 입력해주세요.");
             }
             if (!passwordEncoder.matches(request.getCurrentPassword(), member.getPassword())) {
                 throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다.");
             }
-            // 새 비밀번호 암호화
-            encodedPassword = passwordEncoder.encode(request.getPassword());
+
+            String encodedPassword = passwordEncoder.encode(request.getPassword());
+            member.updatePassword(encodedPassword);
         }
-        // 4. 응답 생성 (Converter 사용)
-        return memberConverter.toUpdateProfileResponse(member, "닉네임과 비밃번호가 성공적으로 수정되었습니다.");
+
+        return memberConverter.toUpdateProfileResponse(member, "프로필이 성공적으로 수정되었습니다.");
     }
 
 

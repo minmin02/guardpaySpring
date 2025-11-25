@@ -115,6 +115,9 @@ public class Member extends BaseEntity {
         this.nickname = nickname;
         return this;
     }
+    public void updateNickname(String nickname) {
+        this.nickname = nickname;
+    }
 
     public void updatePassword(String newPasswordHash) {
         this.password = newPasswordHash;

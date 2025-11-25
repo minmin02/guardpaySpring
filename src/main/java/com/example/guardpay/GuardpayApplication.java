@@ -8,4 +8,5 @@ public class GuardpayApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(GuardpayApplication.class, args);
 	}
+
 }
