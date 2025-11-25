@@ -7,7 +7,7 @@ INSERT INTO category (category_id, name) VALUES (1, '기초 금융 용어'),
 
 -- 퀴즈 데이터
 INSERT INTO quiz
-    (quiz_id, category_id, question, level, answer, point)
+(quiz_id, category_id, question, level, answer, point)
 VALUES
     (101, 1, '은행에서 통장 없이 돈을 찾을 수 있는 서비스는?', 1, 'ATM', 10),
     (102, 1, '적금과 예금의 차이는?', 2, '적금은 매달 납입, 예금은 일시납', 15),
