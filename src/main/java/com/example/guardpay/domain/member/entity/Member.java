@@ -70,6 +70,7 @@ public class Member extends BaseEntity {
     private String profileImageUrl;
 
 
+
     @Builder
     public Member(String email, String password, String nickname, String role, String provider, String providerId) {
         this.email = email;
@@ -126,6 +127,17 @@ public class Member extends BaseEntity {
         this.refreshToken = refreshToken;
     }
 
+    // 프로필 일괄 수정
+    public void updateProfile(String nickname, String passwordHash, Grade grade) {
+        if (nickname != null && !nickname.trim().isEmpty()) {
+            this.nickname = nickname;
+        }
+        if (passwordHash != null && !passwordHash.trim().isEmpty()) {
+            this.password = passwordHash;
+        }
+    }
+
+
     public void addExp(int expToAdd) {
         this.exp += expToAdd;
         this.points += expToAdd; // 포인트도 함께 적립할 경우
@@ -144,15 +156,6 @@ public class Member extends BaseEntity {
     public int getBalance() {return this.points;}
 
     public void setBalance(int updatedBalance) {this.points = updatedBalance;}
-    // 프로필 일괄 수정
-    public void updateProfile(String nickname, String passwordHash, Grade grade) {
-        if (nickname != null && !nickname.trim().isEmpty()) {
-            this.nickname = nickname;
-        }
-        if (passwordHash != null && !passwordHash.trim().isEmpty()) {
-            this.password = passwordHash;
-        }
-    }
 
 
 }
