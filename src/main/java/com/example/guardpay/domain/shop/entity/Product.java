@@ -19,6 +19,6 @@ public class Product {
     private String brand;
     private String category;
     private String thumbnail;
-    private String pricePoint;
+    private int pricePoint;
     private LocalDateTime updateAt;
 }
