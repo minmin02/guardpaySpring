@@ -82,9 +82,13 @@ public class ExchangeService {
                 .map(log -> ExchangeHistoryItemDto.builder()
                         .exchangeId(log.getExchangeId())
                         .productName(log.getProduct().getName())
+                        .brandName(log.getProduct().getBrand())
                         .pointsUsed(log.getPointsUsed())
                         .status(log.getStatus())
                         .exchangedAt(log.getExchangedAt().toString())
+                        .couponCode(log.getCouponCode())
+                        .validUntil(log.getValidUntil().toString())
+                        .thumbnail(log.getProduct().getThumbnail())
                         .build()
                 )
                 .toList();
