@@ -60,6 +60,6 @@ public class ShopController {
 
     // TODO: 실제 JWT 기반으로 교체
     private Long extractUserIdFromToken(String token) {
-        return 1L;
+        return 13L;
     }
 }
