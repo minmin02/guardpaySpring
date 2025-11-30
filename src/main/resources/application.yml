@@ -3,44 +3,13 @@ spring:
     name: guardpay
 
   profiles:
-    active: local   # ?? ?? ????: local
+    active: local   # 기본 활성 프로파일: local
 
 ---
 jwt:
-  # ⬇️ 이 부분이 가장 중요합니다. 외부에 노출되면 안 되는 매우 긴 비밀 키를 입력하세요.
   secret-key: V293ISB0aGlzIGlzIGEgdmVyeSBsb25nIGFuZCBzZWN1cmUgc2VjcmV0IGtleSBmb3IgSldUIGVuY29kaW5nLiBEbyBub3Qgc2hhcmUgaXQgd2l0aCBhbnlvbmUh
-  access-token-validity-in-seconds: 3600   # 1시간
-  refresh-token-validity-in-seconds: 604800 # 7일
-
-spring:
-  config:
-    activate:
-      on-profile: local
-
-  ai:
-    openai:
-      api-key: dummy   # open ai ??
-
-  datasource:
-    url: jdbc:h2:mem:guardpay
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
-  jpa:
-    hibernate:
-      ddl-auto: create-drop  # ??? ??? ??? ?? ??
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
-
-server:
-  port: 8080
-  address: 0.0.0.0
+  access-token-validity-in-seconds: 3600
+  refresh-token-validity-in-seconds: 604800
 
 ---
 
@@ -54,10 +23,9 @@ spring:
     username: root
     password:
 
-
   jpa:
     hibernate:
-      ddl-auto: create-drop   # ?? DB?? update ?? ??
+      ddl-auto: create-drop
     show-sql: true
     properties:
       hibernate:
@@ -78,8 +46,44 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: prod_user
     password: prod_password
+
   jpa:
     hibernate:
-      ddl-auto: create-drop   # ?? DB? ??? ?? ?? ??
+      ddl-auto: validate
     show-sql: false
 
+---
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    display-request-duration: true
+    groups-order: DESC
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
+
+gemini:
+  api:
+    key: AIzaSyAlsxM6Bwb1QAM78nVd516m1vYBoQbTFbw
+    model: gemini-2.5-flash
+  prompts:
+    financial-education:
+      system: classpath:prompts/financial-education-system.txt
+      user: classpath:prompts/financial-education-user.txt
+
+google:
+  client-id: 807215747095-niibg754e2kv5575hp74o0e6eov1h4eq.apps.googleusercontent.com
+  client-secret: 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
+  scope:
+    - profile
+    - email
+  redirect-uri: "https://progestational-lurlene-supportable.ngrok-free.dev/login/oauth2/code/google"
+
+kakao:
+  rest-api-key: 10a934779f26bc12ccae7dda80d5fe4d
+  api:
+    url: https://dapi.kakao.com

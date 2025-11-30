@@ -12,6 +12,7 @@ import java.util.UUID;
 
 @Entity
 @Getter
+@Setter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -31,7 +32,7 @@ public class Member extends BaseEntity {
     @Column(nullable = false, length = 50)
     private String nickname; // 닉네임
 
-
+    @Column(name = "points")
     private int points; // 포인트
 
     @Enumerated(EnumType.STRING)
@@ -76,13 +77,9 @@ public class Member extends BaseEntity {
         this.email = email;
         this.password = password;
         this.nickname = nickname;
-
-        this.points = 0;
         this.grade = Grade.주의_필요;
         this.status = "ACTIVE"; // 예: 활성 상태를 기본값으로 지정
-        this.exp = 0;
         this.fontSize = 16; // 예: 기본 폰트 크기
-
         this.role = "ROLE_USER";
         this.provider = provider;
         this.providerId = providerId;
@@ -153,9 +150,9 @@ public class Member extends BaseEntity {
         this.grade = Grade.valueOf(finalGrade.replace(" ", "_"));
     }
 
-    public int getBalance() {return this.points;}
+    //public int getBalance() {return this.points;}
 
-    public void setBalance(int updatedBalance) {this.points = updatedBalance;}
+    //public void setBalance(int updatedBalance) {this.points = updatedBalance;}
 
 
 }

@@ -62,12 +62,12 @@ public class BeneficiaryService {
         Beneficiary b = beneficiaryRepository.findById(beneficiaryId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "잘못된 송금 대상입니다."));
 
-        if (member.getBalance() < amount)
+        if (member.getPoints() < amount)
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "잔액이 부족합니다.");
 
         int reward = 100;
-        int updatedBalance = member.getBalance() + reward;
-        member.setBalance(updatedBalance);
+        int updatedBalance = member.getPoints() + reward;
+        member.setPoints(updatedBalance);
         memberRepository.save(member);
 
         TransferHistory history = TransferHistory.builder()
