@@ -33,6 +33,7 @@ public class MemberSignService {
                 .password(encodedPassword) // ✅ 암호화된 비번 저장
                 .nickname(requestDto.getNickname())
                 .role("ROLE_USER")
+                .points(100000)
                 .build();
         memberRepository.save(member);
     }

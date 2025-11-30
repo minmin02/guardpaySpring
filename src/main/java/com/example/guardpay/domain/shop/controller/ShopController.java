@@ -3,6 +3,7 @@ package com.example.guardpay.domain.shop.controller;
 import com.example.guardpay.domain.shop.dto.ExchangeResponseDto;
 import com.example.guardpay.domain.shop.service.ExchangeService;
 import com.example.guardpay.domain.shop.service.ProductService;
+import com.example.guardpay.global.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +17,7 @@ public class ShopController {
 
     private final ProductService productService;
     private final ExchangeService exchangeService;
+    private final JwtTokenProvider jwtTokenProvider;
 
     // 📌 1. 상품 목록 조회
     @GetMapping("/products")
@@ -33,7 +35,8 @@ public class ShopController {
             @PathVariable Long productId,
             @RequestHeader("Authorization") String token
     ) {
-        Long memberId = extractUserIdFromToken(token);
+        String jwtToken = token.replace("Bearer ", "");
+        Long memberId = jwtTokenProvider.getMemberId(jwtToken);
 
         ExchangeResponseDto dto = exchangeService.exchangeProduct(memberId, productId);
 
@@ -49,7 +52,8 @@ public class ShopController {
     public ResponseEntity<?> getExchangeHistory(
             @RequestHeader("Authorization") String token
     ) {
-        Long memberId = extractUserIdFromToken(token);
+        String jwtToken = token.replace("Bearer ", "");
+        Long memberId = jwtTokenProvider.getMemberId(jwtToken);
 
         return ResponseEntity.ok(Map.of(
                 "status", 200,
@@ -58,8 +62,8 @@ public class ShopController {
         ));
     }
 
-    // TODO: 실제 JWT 기반으로 교체
-    private Long extractUserIdFromToken(String token) {
-        return 13L;
-    }
+//    // TODO: 실제 JWT 기반으로 교체
+//    private Long extractUserIdFromToken(String token) {
+//        return 13L;
+//    }
 }
