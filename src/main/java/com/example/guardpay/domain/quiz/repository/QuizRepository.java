@@ -11,6 +11,9 @@ public interface QuizRepository extends JpaRepository<Quiz, Long> {
 
     @Query("SELECT q FROM Quiz q WHERE q.category.categoryId = :categoryId")
     List<Quiz> findByCategoryId(Long categoryId);
+
+    long countByCategory_CategoryId(Long categoryId);
+
 }
 
 

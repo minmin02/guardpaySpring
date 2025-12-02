@@ -7,6 +7,7 @@ import com.example.guardpay.domain.quiz.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -111,7 +112,9 @@ public class QuizService {
         );
     }
 
-public Map<String, Object> submitAnswer(Long memberId, Long quizId, Long selectedOptionId) {
+    public Map<String, Object> submitAnswer(Long memberId, Long quizId, Long selectedOptionId) {
+
+        // 문제 & 선택지 조회
         Quiz quiz = quizRepository.findById(quizId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 퀴즈입니다."));
         QuizOption selected = quizOptionRepository.findById(selectedOptionId)
@@ -120,23 +123,72 @@ public Map<String, Object> submitAnswer(Long memberId, Long quizId, Long selecte
         boolean isCorrect = selected.getIsCorrect();
         int gainExp = isCorrect ? quiz.getPoint() : 0;
 
-        // ✅ 정답일 경우 Member 포인트 반영
-        if (isCorrect) {
-            Member member = memberRepository.findById(memberId)
-                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+
+        // ==========================================================
+        // 1️⃣ 이미 이 문제를 정답 처리한 적 있는지 체크 (중복 progress 방지)
+        // ==========================================================
+        boolean alreadyCorrect = quizHistoryRepository
+                .existsByMember_MemberIdAndQuiz_QuizIdAndGainExpGreaterThan(
+                        memberId, quizId, 0
+                );
+
+        // ==========================================================
+        // 2️⃣ 정답 + 처음 맞힘 → EXP 지급
+        // ==========================================================
+        if (isCorrect && !alreadyCorrect) {
             member.addExp(gainExp);
             memberRepository.save(member);
         }
 
-        // ✅ 풀이 기록 저장
+        // ==========================================================
+        // 3️⃣ Progress 업데이트 (정답 + 처음 맞힘일 때만)
+        // ==========================================================
+        if (isCorrect && !alreadyCorrect) {
+
+            Long categoryId = quiz.getCategory().getCategoryId();
+
+            // 총 문제 수
+            long totalQuizCount = quizRepository.countByCategory_CategoryId(categoryId);
+
+            // 기존 progress 조회 또는 새로 생성
+            Progress progress = progressRepository
+                    .findByMember_MemberIdAndCategory_CategoryId(memberId, categoryId)
+                    .orElseGet(() -> Progress.builder()
+                            .member(member)
+                            .category(quiz.getCategory())
+                            .progress(0)
+                            .updateAt(LocalDateTime.now())
+                            .build()
+                    );
+
+            // 증가 비율 = 1문제 / 전체문제 * 100
+            int increase = (int) Math.round((1.0 / totalQuizCount) * 100.0);
+
+            int newProgress = progress.getProgress() + increase;
+            if (newProgress > 100) newProgress = 100;
+
+            progress.setProgress(newProgress);
+            progress.setUpdateAt(LocalDateTime.now());
+
+            progressRepository.save(progress);
+        }
+
+        // ==========================================================
+        // 4️⃣ 풀이 기록 저장
+        // ==========================================================
         QuizHistory history = QuizHistory.builder()
-                .member(memberRepository.findById(memberId).orElseThrow())
+                .member(member)
                 .quiz(quiz)
                 .gainExp(gainExp)
-                .answerAt(java.time.LocalDateTime.now())
+                .answerAt(LocalDateTime.now())
                 .build();
         quizHistoryRepository.save(history);
 
+        // ==========================================================
+        // 5️⃣ 반환 데이터
+        // ==========================================================
         Map<String, Object> data = new HashMap<>();
         data.put("isCorrect", isCorrect);
         data.put("gainExp", gainExp);
@@ -147,6 +199,8 @@ public Map<String, Object> submitAnswer(Long memberId, Long quizId, Long selecte
                 "data", data
         );
     }
+
+
 
     // ✅ 5. 퀴즈 기록 조회
     public Map<String, Object> getQuizHistory(Long memberId) {

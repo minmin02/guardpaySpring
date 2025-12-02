@@ -27,4 +27,13 @@ public class Progress {
     private Integer progress;
 
     private LocalDateTime updateAt;
+
+    public void setProgress(Integer progress) {
+        this.progress = progress;
+    }
+
+    public void setUpdateAt(LocalDateTime updateAt) {
+        this.updateAt = updateAt;
+    }
+
 }
