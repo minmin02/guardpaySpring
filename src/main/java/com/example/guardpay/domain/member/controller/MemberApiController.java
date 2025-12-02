@@ -1,6 +1,7 @@
 package com.example.guardpay.domain.member.controller;
 
 
+import com.example.guardpay.domain.member.dto.request.GoogleToken;
 import com.example.guardpay.domain.member.dto.request.KakaoToken;
 import com.example.guardpay.domain.member.dto.request.LoginRequest;
 import com.example.guardpay.domain.member.dto.request.ReissueRequestDto;
@@ -56,8 +57,8 @@ public class MemberApiController {
     }
 
 //카카오 회원 가입
-    @PostMapping("/kakao")
-    @Operation(summary = "회원가입", description = "소셜 카카오 회원가입")
+    @PostMapping("/kakao/login")
+    @Operation(summary = "카카오 로그인", description = "카카오 소셜 로그인 및 회원가입")
     public ResponseEntity<AuthResponseDto> kakaoAuth(@RequestBody KakaoToken kakaoTokenDto) {
         // Service 로직을 호출하고 결과를 바로 반환
         AuthResponseDto responseDto = kakaoAuthService.loginOrSignup(kakaoTokenDto.getAccessToken());
@@ -116,10 +117,10 @@ public class MemberApiController {
         }
     }
 
-    @PostMapping("/google")
-    public ResponseEntity<AuthResponseDto> googleLogin(@RequestBody Map<String, String> requestBody) {
-        String idToken = requestBody.get("accessToken"); // Android에서 전달하는 필드명
-        AuthResponseDto response = googleService.loginOrSignup(idToken);
+    @PostMapping("/google/login")
+    @Operation(summary = "구글 로그인", description = "구글 소셜 로그인 및 회원가입")
+    public ResponseEntity<AuthResponseDto> googleLogin(@RequestBody GoogleToken googleTokenDto) {
+        AuthResponseDto response = googleService.loginOrSignup(googleTokenDto.getIdToken());
         return ResponseEntity.ok(response);
     }
 
