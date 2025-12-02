@@ -30,7 +30,7 @@ public class DiagnosisService {
     private final JwtTokenProvider jwtTokenProvider;
 
     public Map<String, Object> getDiagnosisQuestions() {
-        // ✅ 카테고리별 정보 (이름도 포함)
+
         Map<Long, String> categoryNames = Map.of(
                 1L, "금융 기본 지식",
                 2L, "사기 예방",
@@ -39,33 +39,35 @@ public class DiagnosisService {
 
         List<Map<String, Object>> parts = new ArrayList<>();
 
-        // ✅ 카테고리 1~3까지 반복
         for (Map.Entry<Long, String> entry : categoryNames.entrySet()) {
             Long categoryId = entry.getKey();
             String categoryName = entry.getValue();
 
             List<Map<String, Object>> questions = new ArrayList<>();
 
-            // ✅ 각 카테고리에서 level 1~3 한 문제씩 뽑기
             for (int level = 1; level <= 3; level++) {
                 List<Quiz> quizList = quizRepository.findByCategoryIdAndLevel(categoryId, level);
 
                 if (!quizList.isEmpty()) {
-                    // ✅ 랜덤으로 한 문제 선택
                     Quiz quiz = quizList.get(new Random().nextInt(quizList.size()));
 
-                    // ✅ 보기 구성
-                    Map<String, String> options = new LinkedHashMap<>();
-                    List<QuizOption> quizOptions = quiz.getOptions();
-                    for (int i = 0; i < quizOptions.size(); i++) {
-                        options.put(String.valueOf(i + 1), quizOptions.get(i).getOptionText());
+                    // 🔥 옵션 리스트를 optionId + text 형태로 넘기기
+                    List<Map<String, Object>> optionList = new ArrayList<>();
+                    for (QuizOption opt : quiz.getOptions()) {
+                        optionList.add(
+                                Map.of(
+                                        "optionId", opt.getOptionId(),
+                                        "text", opt.getOptionText()
+                                )
+                        );
                     }
 
                     Map<String, Object> questionMap = Map.of(
                             "questionId", quiz.getQuizId(),
                             "questionText", quiz.getQuestion(),
-                            "options", options
+                            "options", optionList
                     );
+
                     questions.add(questionMap);
                 }
             }
@@ -75,10 +77,10 @@ public class DiagnosisService {
                     "partName", categoryName,
                     "questions", questions
             );
+
             parts.add(part);
         }
-
-        // ✅ 최종 응답 반환
+        System.out.println(parts);
         return Map.of(
                 "status", 200,
                 "message", "진단 문제 조회가 완료되었습니다.",
@@ -106,6 +108,7 @@ public class DiagnosisService {
             if (answer.getQuizID() == null) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "퀴즈 ID가 누락되었습니다.");
             }
+            System.out.println("getSelectedAnswer: " + answer.getSelectedAnswer());
             if (answer.getSelectedAnswer() == null) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "선택한 보기가 누락되었습니다.");
             }

@@ -68,7 +68,7 @@ springdoc:
 
 gemini:
   api:
-    key: AIzaSyAlsxM6Bwb1QAM78nVd516m1vYBoQbTFbw
+    key: AIzaSyACtYKCyGhrvRP0wTNWpnQ15Go_JL7Gbtc
     model: gemini-2.5-flash
   prompts:
     financial-education:
