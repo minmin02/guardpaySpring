@@ -9,5 +9,6 @@ import lombok.Getter;
 public class AuthResponseDto {
 
     private String accessToken;
-    private boolean isNewuser;// 신규유저인지 파악
+    private String refreshToken;
+    private boolean isNewUser;// 신규유저인지 파악
 }

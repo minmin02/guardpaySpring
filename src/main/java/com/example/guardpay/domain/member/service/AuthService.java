@@ -55,10 +55,33 @@ public class AuthService {
             isNewUser = false;
         } else {
             // 3-2. 사용자가 없으면 (신규 회원 -> 자동 회원가입)
-            String nickname = kakaoUserInfo.getKakao_account().getProfile().getNickname();
-            String email = kakaoUserInfo.getKakao_account().getEmail();
 
-// Member 엔티티에 만들어 둔 정적 팩토리 메소드를 사용합니다.
+            String email = null;
+            String nickname = null;
+
+            // kakao_account가 있는 경우에만 정보 추출
+            if (kakaoUserInfo.getKakao_account() != null) {
+                email = kakaoUserInfo.getKakao_account().getEmail();
+
+                // Profile에서 닉네임 추출
+                if (kakaoUserInfo.getKakao_account().getProfile() != null) {
+                    nickname = kakaoUserInfo.getKakao_account().getProfile().getNickname();
+                }
+            }
+
+            // 이메일이 없으면 카카오 ID 기반 이메일 생성
+            if (email == null || email.isEmpty()) {
+                email = "kakao_" + kakaoId + "@kakao.user";
+                log.info("📧 Email not provided by Kakao, using generated email: {}", email);
+            }
+
+            // 닉네임이 없으면 기본 닉네임 생성
+            if (nickname == null || nickname.isEmpty()) {
+                nickname = "카카오사용자" + kakaoId;
+                log.info("👤 Nickname not provided by Kakao, using default: {}", nickname);
+            }
+
+            // Member 엔티티에 만들어 둔 정적 팩토리 메소드를 사용합니다.
             Member newMember = Member.createSocialMember(
                     email,
                     nickname,
@@ -74,9 +97,14 @@ public class AuthService {
 
         // 4. 우리 서비스의 JWT 토큰 발급 (Member의 ID 사용)
         String serviceAccessToken = jwtTokenProvider.createAccessToken(member.getMemberId(),member.getRole()); // ✅ OK: public 메소드 호출
+        String serviceRefreshToken = jwtTokenProvider.createRefreshToken(member.getMemberId());
+
+        // 4-1. Refresh Token을 DB에 저장
+        member.updateRefreshToken(serviceRefreshToken);
+        memberRepository.save(member);
 
         // 5. 최종 응답 DTO 생성 후 반환
-        return new AuthResponseDto(serviceAccessToken, isNewUser);
+        return new AuthResponseDto(serviceAccessToken, serviceRefreshToken, isNewUser);
     }
 
     private KakaoUserInfo getKakaoUserInfo(String accessToken) {

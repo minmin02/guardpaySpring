@@ -47,17 +47,27 @@ public class GoogleService {
             String sub = payload.getSubject(); // Google 고유 사용자 ID
 
             // 3️⃣ 회원 조회 or 신규 등록
-            Member member = memberRepository.findByEmail(email)
-                    .orElseGet(() -> memberRepository.save(
-                            Member.createSocialMember(email, name, "google", sub)
-                    ));
+            boolean isNewUser = false;
+            Member member = memberRepository.findByEmail(email).orElse(null);
+
+            if (member == null) {
+                // 신규 회원 생성
+                member = memberRepository.save(
+                        Member.createSocialMember(email, name, "google", sub)
+                );
+                isNewUser = true;
+            }
 
             // 4️⃣ JWT 토큰 생성
             String accessToken = jwtTokenProvider.createAccessToken(member.getMemberId(), member.getRole());
             String refreshToken = jwtTokenProvider.createRefreshToken(member.getMemberId());
 
+            // 4-1️⃣ Refresh Token을 DB에 저장
+            member.updateRefreshToken(refreshToken);
+            memberRepository.save(member);
+
             // 5️⃣ 응답 반환
-            return new AuthResponseDto(accessToken, false);
+            return new AuthResponseDto(accessToken, refreshToken, isNewUser);
 
         } catch (Exception e) {
             throw new RuntimeException("Google login failed", e);
