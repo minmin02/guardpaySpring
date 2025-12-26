@@ -21,6 +21,7 @@ import org.springframework.web.cors.CorsConfiguration;
 
 import java.util.List;
 
+// 명시적 빈 정의
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor

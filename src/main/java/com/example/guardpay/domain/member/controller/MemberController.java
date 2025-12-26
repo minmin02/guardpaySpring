@@ -32,6 +32,7 @@ public class MemberController {
             @AuthenticationPrincipal UserDetails userDetails) {
 
         Long memberId = extractMemberId(userDetails);
+
         MemberDto.MemberInfoResponse response = memberService.getMemberInfo(memberId);
 
         return ResponseEntity.ok(response);

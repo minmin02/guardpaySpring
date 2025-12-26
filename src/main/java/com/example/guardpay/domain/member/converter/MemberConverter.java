@@ -1,6 +1,7 @@
 package com.example.guardpay.domain.member.converter;
 
 import com.example.guardpay.domain.member.dto.request.MemberDto;
+import com.example.guardpay.domain.member.dto.request.SignupRequestDto;
 import com.example.guardpay.domain.member.entity.Member;
 import org.springframework.stereotype.Component;
 
@@ -11,10 +12,10 @@ public class MemberConverter {
      * Member 엔티티를 MemberInfoResponse DTO로 변환
      */
     public MemberDto.MemberInfoResponse toMemberInfoResponse(Member member) {
+
         if (member == null) {
             return null;
         }
-
         return MemberDto.MemberInfoResponse.builder()
                 .memberId(member.getMemberId())
                 .email(member.getEmail())
@@ -63,4 +64,16 @@ public class MemberConverter {
                 .updatedAt(member.getUpdatedAt())
                 .build();
     }
+
+    public Member toEntity(SignupRequestDto requestDto, String encodePassword) {
+        return Member.builder()
+                .email(requestDto.getEmail())
+                .password(encodePassword)
+                .nickname(requestDto.getNickname())
+                .role("ROLE_USER")
+                .points(100000)
+                .build();
+    }
+
+
 }

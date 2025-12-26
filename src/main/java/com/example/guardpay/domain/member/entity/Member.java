@@ -12,12 +12,12 @@ import java.util.UUID;
 
 @Entity
 @Getter
-@Setter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 public class Member extends BaseEntity {
 
+    //DB의 PK의미
 @Id
 @GeneratedValue(strategy= GenerationType.IDENTITY)
     private Long memberId;
@@ -47,13 +47,13 @@ public class Member extends BaseEntity {
     @Column(name = "font_size")
     private int fontSize; // 폰트크기
 
-    @CreatedDate // 엔터티 생성 시 시간 자동 저장
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt; // 회원가입일시
-
-    @LastModifiedDate // 엔터티 수정 시 시간 자동 저장
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt; // 회원정보수정일시
+//    @CreatedDate // 엔터티 생성 시 시간 자동 저장
+//    @Column(name = "created_at", updatable = false)
+//    private LocalDateTime createdAt; // 회원가입일시
+//
+//    @LastModifiedDate // 엔터티 수정 시 시간 자동 저장
+//    @Column(name = "updated_at")
+//    private LocalDateTime updatedAt; // 회원정보수정일시
 
     @Column(length = 20)
     private String provider; // 소셜 로그인 제공자
@@ -93,8 +93,6 @@ public class Member extends BaseEntity {
 
         member.provider = provider;
         member.providerId = providerId;
-
-
 
         // 소셜 로그인 사용자는 비밀번호를 사용하지 않으므로, 보안을 위해 임의의 값을 할당
         member.password = UUID.randomUUID().toString();

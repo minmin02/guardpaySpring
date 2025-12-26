@@ -40,6 +40,7 @@ public class MemberApiController {
 
     //폼 회원가입
     @Operation(summary = "회원가입", description = "폼 회원가입")
+
     @PostMapping("/signup")
     // 4. 반환 타입을 Map<String, Object>로 수정
     public ResponseEntity<Map<String, Object>> signUp(@RequestBody SignupRequestDto signUpRequestDto) {

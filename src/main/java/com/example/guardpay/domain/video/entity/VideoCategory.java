@@ -41,6 +41,9 @@ public class VideoCategory extends BaseEntity {
     private Boolean isActive;
 
     // 카테고리 하나에 여러 영상
+    // casecade =CascadeType.ALL
+    // casecade =CascadeType.REMOVE
+    // 같이 casecade 옵션
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PreventionVideo> videos = new ArrayList<>();
 
