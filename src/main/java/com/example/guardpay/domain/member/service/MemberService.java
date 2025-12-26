@@ -12,11 +12,13 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
-
+// MemberService를 빈 객체로 등록
 @Service
+//final이 붙은 필드들을 생성자를 자동으로 만들어줌
 @RequiredArgsConstructor
 public class MemberService {
 
+    // 의존성 주입 ㄴ
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final MemberConverter memberConverter;
