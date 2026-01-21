@@ -1,0 +1,76 @@
+name: CI/CD using github actions & docker
+
+on:
+  push:
+    branches: ["develop"]
+
+permissions:
+  contents: read
+
+jobs:
+  CI-CD:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      # JDK 21 설정 (GuardPay 빌드 환경)
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      # Gradle 캐싱 (빌드 속도 향상)
+      - name: Gradle Caching
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      # application.yml 설정 (GitHub Secrets 활용)
+      - name: Create application.yml
+        run: |
+          mkdir -p ./src/main/resources
+          echo "${{ secrets.APPLICATION }}" > ./src/main/resources/application.yml
+
+      # Gradle 빌드 (테스트 제외)
+      - name: Build with Gradle
+        run: |
+          chmod +x ./gradlew
+          ./gradlew build -x test
+
+      # Docker 빌드 & 푸시 (EC2 아키텍처에 맞게 linux/amd64 지정)
+      - name: Docker build & push
+        run: |
+          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+          docker build --platform linux/amd64 -t "${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_PROJECT }}:latest" .
+          docker push "${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_PROJECT }}:latest"
+
+      # EC2 실제 배포 작업
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST_PROD }}
+          username: ubuntu
+          key: ${{ secrets.PRIVATE_KEY }}
+          script: |
+            # 1. 기존 컨테이너 중지 및 삭제 (이름: guardpay-server)
+            sudo docker stop guardpay-server || true
+            sudo docker rm guardpay-server || true
+            
+            # 2. 최신 이미지 pull
+            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_PROJECT }}:latest
+            
+            # 3. 컨테이너 실행 (아까 실습한 네트워크와 환경변수 적용 추천)
+            # 만약 DB와 네트워크 연결을 이미 해두셨다면 아래 명령어를 사용하세요.
+            sudo docker run -d --name guardpay-server \
+              --network guardpay-net \
+              -p 8080:8080 \
+              ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_PROJECT }}:latest
+            
+            # 4. 사용하지 않는 이미지 정리
+            sudo docker image prune -f
