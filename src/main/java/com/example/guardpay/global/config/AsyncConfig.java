@@ -22,7 +22,6 @@ public class AsyncConfig {
         executor.setThreadNamePrefix("async-worker-");
         executor.initialize();
 
-        // 2.  SecurityContext를 비동기 스레드로 전파하는 래퍼로 감쌉니다.
         return new DelegatingSecurityContextAsyncTaskExecutor(executor);
     }
 }
