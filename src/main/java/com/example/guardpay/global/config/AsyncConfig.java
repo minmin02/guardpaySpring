@@ -11,10 +11,7 @@ import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecu
 @EnableAsync // 비동기 기능을 활성화합니다.
 public class AsyncConfig {
 
-    /**
-     * @Async 어노테이션이 사용할 기본 스레드 풀 Executor를 정의합니다.
-     * SecurityContext를 전파하기 위해 DelegatingSecurityContextAsyncTaskExecutor로 래합니다.
-     */
+
     @Bean
     public TaskExecutor taskExecutor() {
         // 1. 실제 작업을 수행할 스레드 풀을 생성합니다.
