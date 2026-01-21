@@ -31,11 +31,14 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      # application.yml 설정 (GitHub Secrets 활용)
+      # application-prod.yml 설정 (GitHub Secrets 활용)
       - name: Create application-prod.yml
         run: |
           mkdir -p ./src/main/resources
-          echo "${{ secrets.APPLICATION }}" > ./src/main/resources/application-prod.yml
+          # ⬇️ 아래 3줄로 교체 (특수문자 에러 방지용)
+          cat <<EOF > ./src/main/resources/application-prod.yml
+          ${{ secrets.APPLICATION }}
+          EOF
 
       # Gradle 빌드 (테스트 제외)
       - name: Build with Gradle
