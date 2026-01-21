@@ -86,7 +86,6 @@ public class SecurityConfig {
                 ).permitAll()
                 .requestMatchers(
                         "/api/chat/**",
-                        // ⬇️ 퀴즈 API 중 인증이 필요한 경로들
                         "/api/quiz/history",
                         "/api/quiz/progress",
                         "/api/quiz/level",
