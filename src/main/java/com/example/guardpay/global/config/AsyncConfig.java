@@ -17,7 +17,7 @@ public class AsyncConfig {
 
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(5);
-        executor.setMaxPoolSize(10);  // 최대 스레드 수
+        executor.setMaxPoolSize(10);
         executor.setQueueCapacity(25); // 대기 큐 크기
         executor.setThreadNamePrefix("async-worker-");
         executor.initialize();
