@@ -25,8 +25,7 @@ public class AsyncConfig {
         executor.setThreadNamePrefix("async-worker-");
         executor.initialize();
 
-        // 2. (핵심) SecurityContext를 비동기 스레드로 전파하는 래퍼로 감쌉니다.
-        //    이제 @Async 작업은 항상 요청을 보낸 사용자의 인증 정보를 갖게 됩니다.
+        // 2.  SecurityContext를 비동기 스레드로 전파하는 래퍼로 감쌉니다.
         return new DelegatingSecurityContextAsyncTaskExecutor(executor);
     }
 }
