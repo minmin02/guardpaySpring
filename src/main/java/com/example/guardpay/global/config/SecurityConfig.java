@@ -110,10 +110,10 @@ public class SecurityConfig {
                 })
         );
 
-        http.oauth2Login(oauth2 -> oauth2
-                .successHandler(oAuth2AuthenticationSuccessHandler)
-                .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
-        );
+//        http.oauth2Login(oauth2 -> oauth2
+//                .successHandler(oAuth2AuthenticationSuccessHandler)
+//                .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+//        );
 
         // JwtAuthenticationFilter를 UsernamePasswordAuthenticationFilter 전에 추가
         http.addFilterBefore(
