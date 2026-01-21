@@ -35,8 +35,7 @@ jobs:
       - name: Create application-prod.yml
         run: |
           mkdir -p ./src/main/resources
-          # ⬇️ 아래 3줄로 교체 (특수문자 에러 방지용)
-          cat <<EOF > ./src/main/resources/application-prod.yml
+          cat <<'EOF' > ./src/main/resources/application-prod.yml
           ${{ secrets.APPLICATION }}
           EOF
 
