@@ -13,7 +13,7 @@ public class AsyncConfig {
 
     /**
      * @Async 어노테이션이 사용할 기본 스레드 풀 Executor를 정의합니다.
-     * SecurityContext를 전파하기 위해 DelegatingSecurityContextAsyncTaskExecutor로 래핑합니다.
+     * SecurityContext를 전파하기 위해 DelegatingSecurityContextAsyncTaskExecutor로 래합니다.
      */
     @Bean
     public TaskExecutor taskExecutor() {
