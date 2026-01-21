@@ -32,10 +32,10 @@ jobs:
             ${{ runner.os }}-gradle-
 
       # application.yml 설정 (GitHub Secrets 활용)
-      - name: Create application.yml
+      - name: Create application-prod.yml
         run: |
           mkdir -p ./src/main/resources
-          echo "${{ secrets.APPLICATION }}" > ./src/main/resources/application.yml
+          echo "${{ secrets.APPLICATION }}" > ./src/main/resources/application-prod.yml
 
       # Gradle 빌드 (테스트 제외)
       - name: Build with Gradle
