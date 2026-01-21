@@ -8,7 +8,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecutor;
 
 @Configuration
-@EnableAsync // 비동기 기능을 활성화합니다.
+@EnableAsync
 public class AsyncConfig {
 
 
