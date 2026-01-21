@@ -14,7 +14,7 @@ public class AsyncConfig {
 
     @Bean
     public TaskExecutor taskExecutor() {
-        // 1. 실제 작업을 수행할 스레드 풀을 생성합니다.
+
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(5);   // 기본 스레드 수
         executor.setMaxPoolSize(10);  // 최대 스레드 수
