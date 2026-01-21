@@ -115,7 +115,7 @@ public class SecurityConfig {
 //                .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
 //        );
 
-        // JwtAuthenticationFilter를 UsernamePasswordAuthenticationFilter 전에 추가
+        // JwtAuthenticationFilter를 UsernamePasswordAuthenticationFilter
         http.addFilterBefore(
                 new JwtAuthenticationFilter(jwtTokenProvider),
                 UsernamePasswordAuthenticationFilter.class
