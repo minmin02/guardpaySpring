@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kakao Map</title>
+    <style>
+        * { margin: 0; padding: 0; }
+        html, body { width: 100%; height: 100%; overflow: hidden; }
+        #map { width: 100%; height: 100%; }
+    </style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<script type="text/javascript"
+        src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=db361439b77ef8d4fab2c9ca9d5ff531&libraries=services"></script>
+
+<script>
+    var map;
+    var myLocationMarker = null;
+    var searchMarkers = [];
+    var selectedMarker = null;   // 🔥 클릭된 마커 저장용
+    var ps = null;
+    var infowindow = null;
+
+    // ===============================
+    // 지도 초기화
+    // ===============================
+    window.onload = function() {
+
+        var container = document.getElementById('map');
+        var options = {
+            center: new kakao.maps.LatLng(37.5665, 126.9780),
+            level: 3
+        };
+
+        map = new kakao.maps.Map(container, options);
+
+        infowindow = new kakao.maps.InfoWindow({ zIndex: 3 });
+        ps = new kakao.maps.services.Places();
+
+        if (window.MapLoadedChannel) {
+            MapLoadedChannel.postMessage('loaded');
+        }
+    };
+
+    // 검색 마커 제거
+    function clearSearchMarkers() {
+        searchMarkers.forEach(m => m.setMap(null));
+        searchMarkers = [];
+        selectedMarker = null;
+    }
+
+    // ===============================
+    // 은행 검색 → 해당 은행들만 마커 표시
+    // ===============================
+    window.searchBankByKeyword = function(bankName) {
+        if (!map) return;
+        clearSearchMarkers();
+
+        var center = map.getCenter();
+
+        ps.keywordSearch(
+            bankName,
+            function(data, status) {
+                if (status !== kakao.maps.services.Status.OK) return;
+
+                console.log("🔍 검색된 지점 수:", data.length);
+
+                data.forEach(place => addSearchMarker(place));
+            },
+            { location: center, radius: 5000 }
+        );
+    };
+
+
+    // ==========================================================
+    // 마커 아이콘 설정
+    // ==========================================================
+
+    const normalIcon = new kakao.maps.MarkerImage(
+        "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png",
+        new kakao.maps.Size(34, 34)
+    );
+
+    const overIcon = new kakao.maps.MarkerImage(
+        "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png",
+        new kakao.maps.Size(42, 42)
+    );
+
+    const selectedIcon = new kakao.maps.MarkerImage(
+        "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png",
+        new kakao.maps.Size(40, 42)
+    );
+
+
+    // ==========================================================
+    // 마커 생성 로직
+    // ==========================================================
+    function addSearchMarker(place) {
+
+        var marker = new kakao.maps.Marker({
+            map: map,
+            position: new kakao.maps.LatLng(place.y, place.x),
+            image: normalIcon
+        });
+
+        marker.normalIcon = normalIcon;
+        marker.overIcon = overIcon;
+        marker.selectedIcon = selectedIcon;
+
+        // hover
+        kakao.maps.event.addListener(marker, "mouseover", function () {
+            if (selectedMarker !== marker) marker.setImage(overIcon);
+        });
+
+        kakao.maps.event.addListener(marker, "mouseout", function () {
+            if (selectedMarker !== marker) marker.setImage(normalIcon);
+        });
+
+        // click → 선택된 마커 빨간색
+        kakao.maps.event.addListener(marker, "click", function () {
+
+            // 예전 선택 마커 원복
+            if (selectedMarker && selectedMarker !== marker) {
+                selectedMarker.setImage(normalIcon);
+            }
+
+            marker.setImage(selectedIcon);
+            selectedMarker = marker;  // 현재 것을 선택상태로
+
+            // 상세정보 카드 표시
+            openInfo(place, marker);
+        });
+
+        searchMarkers.push(marker);
+    }
+
+
+    // 상세정보 InfoWindow
+    function openInfo(place, marker) {
+        var detailUrl = place.place_url;
+        if (!detailUrl || detailUrl.startsWith("kakaomap://")) {
+            detailUrl = "https://map.kakao.com/?q=" + encodeURIComponent(place.place_name);
+        }
+
+        var html = `
+            <div style="padding:10px; width:240px;">
+                <strong style="font-size:14px;">${place.place_name}</strong><br>
+                <span style="color:#555;">${place.road_address_name || place.address_name}</span><br>
+                <a href="${detailUrl}" target="_blank" style="color:#2E7D32; font-size:12px;">
+                    상세정보 보기 >
+                </a>
+            </div>
+        `;
+
+        infowindow.setContent(html);
+        infowindow.open(map, marker);
+    }
+
+</script>
+
+</body>
+</html>
