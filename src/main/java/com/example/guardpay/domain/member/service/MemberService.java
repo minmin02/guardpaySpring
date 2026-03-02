@@ -3,6 +3,10 @@ package com.example.guardpay.domain.member.service;
 import com.example.guardpay.domain.member.converter.MemberConverter;
 import com.example.guardpay.domain.member.dto.request.MemberDto;
 import com.example.guardpay.domain.member.entity.Member;
+import com.example.guardpay.domain.member.enums.FileErrorCode;
+import com.example.guardpay.domain.member.enums.MemberErrorCode;
+import com.example.guardpay.domain.member.exception.FileException;
+import com.example.guardpay.domain.member.exception.MemberException;
 import com.example.guardpay.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -10,7 +14,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 // MemberService를 빈 객체로 등록
 @Service
@@ -58,8 +64,7 @@ public class MemberService {
     @Transactional(readOnly = true)
     public MemberDto.MemberInfoResponse getMemberInfo(Long memberId) {
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
-        // Converter 사용
+                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
         return memberConverter.toMemberInfoResponse(member);
     }
 
@@ -71,7 +76,7 @@ public class MemberService {
     public MemberDto.UpdateProfileImageResponse updateProfileImage(Long memberId, MultipartFile profileImage) {
         // 1. 회원 조회
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
+                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
 
         // 2. 파일 검증
         validateImageFile(profileImage);
@@ -99,7 +104,7 @@ public class MemberService {
     public void deleteProfileImage(Long memberId) {
         // 1. 회원 조회
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
+                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
 
         // 2. 기존 이미지 파일 삭제
         String oldImageUrl = member.getProfileImageUrl();
@@ -112,35 +117,50 @@ public class MemberService {
     }
 
     /**
+     * 등급 조회
+     */
+    @Transactional
+    public Map<String, String> getGrade(Long memberId){
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
+
+        Map<String, String> response = new HashMap<>();
+        response.put("grade", member.getGrade().name());
+
+        return response;
+    }
+
+    /**
      * 이미지 파일 검증
      */
     private void validateImageFile(MultipartFile file) {
         if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("파일이 비어있습니다.");
+            throw new FileException(FileErrorCode.FILE_EMPTY);
         }
 
         // 파일 크기 검증 (5MB)
         long maxSize = 5 * 1024 * 1024;
         if (file.getSize() > maxSize) {
-            throw new IllegalArgumentException("파일 크기는 5MB를 초과할 수 없습니다.");
+            throw new FileException(FileErrorCode.FILE_SIZE_EXCEEDED);
         }
 
         // 파일 타입 검증
         String contentType = file.getContentType();
         if (contentType == null || !contentType.startsWith("image/")) {
-            throw new IllegalArgumentException("이미지 파일만 업로드 가능합니다.");
+            throw new FileException(FileErrorCode.FILE_TYPE_INVALID);
         }
 
         // 허용된 확장자 검증
         String originalFilename = file.getOriginalFilename();
         if (originalFilename == null) {
-            throw new IllegalArgumentException("파일명이 유효하지 않습니다.");
+            throw new FileException(FileErrorCode.FILE_NAME_INVALID);
         }
-
         String extension = originalFilename.substring(originalFilename.lastIndexOf(".") + 1).toLowerCase();
         if (!List.of("jpg", "jpeg", "png", "gif", "webp").contains(extension)) {
-            throw new IllegalArgumentException("지원하지 않는 이미지 형식입니다. (jpg, jpeg, png, gif, webp만 가능)");
+            throw new FileException(FileErrorCode.FILE_EXTENSION_NOT_SUPPORTED);
         }
     }
+
+
 
 }
