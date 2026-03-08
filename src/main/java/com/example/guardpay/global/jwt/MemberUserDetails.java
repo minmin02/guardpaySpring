@@ -12,7 +12,6 @@ import java.util.Collection;
 import java.util.Collections;
 
 @Getter
-@AllArgsConstructor
 @RequiredArgsConstructor
 public class MemberUserDetails implements UserDetails {
     private final Member member;
@@ -48,3 +47,4 @@ public class MemberUserDetails implements UserDetails {
         return "ACTIVE".equals(member.getStatus());
     }
 }
+

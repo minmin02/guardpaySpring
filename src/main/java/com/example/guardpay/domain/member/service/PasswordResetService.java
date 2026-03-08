@@ -3,7 +3,6 @@ package com.example.guardpay.domain.member.service; // (패키지 경로는 맞�
 import com.example.guardpay.domain.member.entity.Member;
 import com.example.guardpay.domain.member.enums.MemberErrorCode;
 import com.example.guardpay.domain.member.exception.MemberException;
-import com.example.guardpay.domain.member.exception.MemberNotFoundException;
 import com.example.guardpay.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

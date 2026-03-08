@@ -103,9 +103,4 @@ public class ExchangeService {
                 .toList();
     }
 
-    //  개별 상품 조회
-    public Product getProduct(Long productId) {
-        return productRepository.findById(productId)
-                .orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다."));
-    }
 }

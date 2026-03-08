@@ -3,6 +3,7 @@ package com.example.guardpay.domain.member.controller;
 
 import com.example.guardpay.domain.member.dto.request.*;
 import com.example.guardpay.domain.member.dto.response.JwtResponse;
+import com.example.guardpay.domain.member.dto.response.SignupResponseDto;
 import com.example.guardpay.domain.member.service.*;
 import com.example.guardpay.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,7 +13,6 @@ import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
-import com.example.guardpay.domain.member.service.GoogleService;
 
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j; // ⬅️ [추가] 로그 사용
@@ -31,8 +31,6 @@ public class MemberController {
     private final PasswordResetService passwordResetService;
     private final checkEmailService checkEmailService;
 
-    private final AuthService kakaoAuthService;
-    private final GoogleService googleService;
 
 
 
@@ -56,9 +54,9 @@ public class MemberController {
     //폼 회원가입
     @Operation(summary = "회원가입", description = "폼 회원가입")
     @PostMapping("/signup")
-    public ApiResponse<Void> signUp(@RequestBody SignupRequestDto signUpRequestDto) {
-        memberSignService.signUp(signUpRequestDto);
-        return ApiResponse.ok();
+    public ApiResponse<SignupResponseDto> signUp(@RequestBody SignupRequestDto signUpRequestDto) {
+
+        return ApiResponse.ok(memberSignService.signUp(signUpRequestDto));
     }
 
 

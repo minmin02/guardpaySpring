@@ -1,8 +1,6 @@
 package com.example.guardpay.global.config;
 
-import com.example.guardpay.global.auth.CustomOAuth2UserService;
-import com.example.guardpay.global.auth.CustomUserDetailsService;
-import com.example.guardpay.global.auth.OAuth2AuthenticationSuccessHandler;
+import com.example.guardpay.global.jwt.CustomUserDetailsService;
 import com.example.guardpay.global.jwt.JwtAuthenticationFilter;
 import com.example.guardpay.global.jwt.JwtTokenProvider;
 // import jakarta.annotation.PostConstruct; // 👈 [제거됨]

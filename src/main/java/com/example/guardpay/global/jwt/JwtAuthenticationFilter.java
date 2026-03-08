@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -15,11 +16,11 @@ import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
+@Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
 
-    // ✅ JWT 검증을 건너뛸 경로 목록
     private static final List<String> SKIP_PATHS = Arrays.asList(
             "/api/auth/",
             "/api/v1/diagnoses/",
@@ -51,21 +52,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         log.info("🔍 [JWT Filter] URI: {}, DispatchType: {}", requestURI, dispatchType);
 
-        // ✅ FORWARD나 ERROR 디스패치는 건너뛰기
         if (!DispatcherType.REQUEST.equals(request.getDispatcherType())) {
             log.info("⏭️ [JWT Filter] Skipping non-REQUEST dispatch: {}", dispatchType);
             filterChain.doFilter(request, response);
             return;
         }
 
-        // ✅ 특정 경로는 JWT 검증 건너뛰기 (이 로그가 반드시 나와야 함!)
         if (shouldSkipJwtValidation(requestURI)) {
             log.info("🔓 [JWT Filter] Skipping JWT validation for path: {}", requestURI);
             filterChain.doFilter(request, response);
             return;
         }
 
-        // Authorization 헤더 확인
         String authHeader = request.getHeader("Authorization");
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
@@ -88,11 +86,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     Authentication authentication = jwtTokenProvider.getAuthentication(token);
                     SecurityContextHolder.getContext().setAuthentication(authentication);
 
-                    log.info("✅ [JWT Filter] Authentication set - Principal: {}, Authorities: {}",
+                    log.info(" [JWT Filter] Authentication set - Principal: {}, Authorities: {}",
                             authentication.getPrincipal(),
                             authentication.getAuthorities());
                 } else {
-                    log.warn("❌ [JWT Filter] Not an access token: {}", tokenType);
+                    log.warn(" [JWT Filter] Not an access token: {}", tokenType);
                 }
             } else {
                 log.warn("❌ [JWT Filter] Invalid token");
@@ -105,7 +103,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    // ✅ 이 메서드가 있어야 함!
     private boolean shouldSkipJwtValidation(String uri) {
         return SKIP_PATHS.stream().anyMatch(uri::startsWith);
     }
