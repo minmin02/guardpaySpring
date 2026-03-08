@@ -8,12 +8,7 @@ import lombok.Getter;
 @AllArgsConstructor
 @Builder
 public class JwtResponse {
-
     private String tokenType;     // "Bearer"
     private String accessToken;
-    private String refreshToken;
     private Long   expiresIn;         // (초) access 만료
-    private Long   refreshExpiresIn;  // (선택) refresh 만료
-
-
 }

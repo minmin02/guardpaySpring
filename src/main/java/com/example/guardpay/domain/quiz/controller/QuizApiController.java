@@ -52,7 +52,8 @@ public class QuizApiController {
         }
     }
 
-    // ✅ JWT 토큰 기반 퀴즈 정답 제출
+
+    // JWT 토큰 기반 퀴즈 정답 제출
     @PostMapping("/{quizId}/submit")
     @Operation(summary = "퀴즈 제출", description = "퀴즈 정답 제출")
     public ResponseEntity<Map<String, Object>> submitAnswer(
@@ -86,4 +87,7 @@ public class QuizApiController {
         Long memberId = Long.parseLong(user.getUsername());
         return ResponseEntity.ok(quizService.getLevels(memberId));
     }
+
+
+
 }

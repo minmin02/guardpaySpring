@@ -4,15 +4,18 @@ import com.example.guardpay.domain.video.dto.req.CategoryWithVideosDto;
 import com.example.guardpay.domain.video.dto.req.PreventionVideoDto;
 import com.example.guardpay.domain.video.dto.req.VideoCategoryDto;
 import com.example.guardpay.domain.video.service.PreventionVideoService;
+import com.example.guardpay.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/videos")
+@RequestMapping("/api/v1/videos")
 @RequiredArgsConstructor
 @Tag(name = "금융 취약 계층 교육 영상", description = "취약계층 전용 비디오 영상 페이지 ")
 public class PreventionVideoController {
@@ -22,36 +25,31 @@ public class PreventionVideoController {
 
     /**
      * 전체 카테고리 목록 조회
-     * GET /api/videos/categories
      */
     @GetMapping("/categories")
-    public ResponseEntity<List<VideoCategoryDto>> getAllCategories() {
+    public ApiResponse<List<VideoCategoryDto>> getAllCategories(@AuthenticationPrincipal UserDetails userDetails) {
         List<VideoCategoryDto> categories = videoService.getAllCategories();
-
-        // 성공 요청
-        return ResponseEntity.ok(categories);
+        return ApiResponse.ok(categories);
     }
 
     /**
      * 특정 카테고리의 영상 목록 조회
-     * GET /api/videos/categories/{categoryId}
      */
     @GetMapping("/categories/{categoryId}")
-    public ResponseEntity<CategoryWithVideosDto> getCategoryWithVideos(
-            @PathVariable Long categoryId) {
+    public ApiResponse<CategoryWithVideosDto> getCategoryWithVideos(
+            @PathVariable Long categoryId,@AuthenticationPrincipal UserDetails userDetails) {
         CategoryWithVideosDto result = videoService.getCategoryWithVideos(categoryId);
-        return ResponseEntity.ok(result);
+        return ApiResponse.ok(result);
     }
 
     /**
      * 특정 영상 상세 조회
-     * GET /api/videos/{videoId}
      */
     @GetMapping("/{videoId}")
-    public ResponseEntity<PreventionVideoDto> getVideoDetail(
-            @PathVariable Long videoId) {
+    public ApiResponse<PreventionVideoDto> getVideoDetail(
+            @PathVariable Long videoId,@AuthenticationPrincipal UserDetails userDetails) {
         PreventionVideoDto video = videoService.getVideoDetail(videoId);
-        return ResponseEntity.ok(video);
+        return ApiResponse.ok(video);
     }
 
     /**

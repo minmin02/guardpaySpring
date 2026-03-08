@@ -21,9 +21,9 @@ public class QuizService {
     private final QuizHistoryRepository quizHistoryRepository;
     private final ProgressRepository progressRepository;
     private final MemberLevelRepository memberLevelRepository;
-    private final MemberRepository memberRepository; // ✅ 추가
+    private final MemberRepository memberRepository;
 
-    // ✅ 1. 카테고리 목록 조회
+    // 1. 카테고리 목록 조회
     public Map<String, Object> getCategories() {
         List<Map<String, Object>> categories = categoryRepository.findAll().stream()
                 .map(c -> {
@@ -41,7 +41,7 @@ public class QuizService {
         );
     }
 
-    // ✅ 2. 카테고리별 퀴즈 목록 조회
+    // 2. 카테고리별 퀴즈 목록 조회
     public Map<String, Object> getQuizzesByCategory(Long categoryId, int level) {
         List<Quiz> quizzes = quizRepository.findByCategoryIdAndLevel(categoryId, level);
 
@@ -84,12 +84,12 @@ public class QuizService {
         );
     }
 
-    // ✅ 3. 퀴즈 상세 조회
+    //  3. 퀴즈 상세 조회
     public Map<String, Object> getQuizDetail(Long quizId) {
         Quiz quiz = quizRepository.findById(quizId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 퀴즈입니다."));
 
-        // ❗️ 수정된 부분: List<String> 대신 List<Map<String, Object>> 반환
+        //  수정된 부분: List<String> 대신 List<Map<String, Object>> 반환
         List<Map<String, Object>> options = quizOptionRepository.findByQuiz_QuizId(quizId).stream()
                 .map(opt -> {
                     Map<String, Object> optionMap = new HashMap<>();
@@ -135,7 +135,7 @@ public class QuizService {
                 );
 
         // ==========================================================
-        // 2️⃣ 정답 + 처음 맞힘 → EXP 지급
+        // 정답 + 처음 맞힘 → EXP 지급
         // ==========================================================
         if (isCorrect && !alreadyCorrect) {
             member.addExp(gainExp);
@@ -143,7 +143,7 @@ public class QuizService {
         }
 
         // ==========================================================
-        // 3️⃣ Progress 업데이트 (정답 + 처음 맞힘일 때만)
+        //  업데이트 (정답 + 처음 맞힘일 때만)
         // ==========================================================
         if (isCorrect && !alreadyCorrect) {
 
@@ -202,7 +202,7 @@ public class QuizService {
 
 
 
-    // ✅ 5. 퀴즈 기록 조회
+    //5. 퀴즈 기록 조회
     public Map<String, Object> getQuizHistory(Long memberId) {
         List<Map<String, Object>> history = quizHistoryRepository.findByMember_MemberId(memberId)
                 .stream()
@@ -223,7 +223,7 @@ public class QuizService {
         );
     }
 
-    // ✅ 6. 진행률 조회
+    //6. 진행률 조회
     public Map<String, Object> getProgress(Long memberId) {
         List<Map<String, Object>> progressList = progressRepository.findByMember_MemberId(memberId)
                 .stream()
@@ -243,7 +243,7 @@ public class QuizService {
         );
     }
 
-    // ✅ 7. 레벨 조회
+    //7. 레벨 조회
     public Map<String, Object> getLevels(Long memberId) {
         List<Map<String, Object>> levels = memberLevelRepository.findByMember_MemberId(memberId)
                 .stream()

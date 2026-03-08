@@ -41,4 +41,5 @@ public class BeneficiaryApiController {
         int amount = body.get("amount");
         return ResponseEntity.ok(beneficiaryService.transfer(memberId, beneficiaryId, amount));
     }
+
 }

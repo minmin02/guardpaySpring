@@ -35,7 +35,6 @@ public class PreventionVideoService {
     public List<VideoCategoryDto> getAllCategories() {
         // 카테고리 오름차순으로 영상 받아옴
         List<VideoCategory> categories = categoryRepository.findByIsActiveTrueOrderByDisplayOrderAsc();
-
         // stream은  리스트 요소들을 하나씩 처리해줌
         return categories.stream()
                 .map(categoryConverter::toDto)  // DTO 변환

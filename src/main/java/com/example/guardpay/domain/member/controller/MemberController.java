@@ -35,13 +35,7 @@ public class MemberController {
     private final GoogleService googleService;
 
 
-    //폼 회원가입
-    @Operation(summary = "회원가입", description = "폼 회원가입")
-    @PostMapping("/signup")
-    public ApiResponse<Void> signUp(@RequestBody SignupRequestDto signUpRequestDto) {
-        memberSignService.signUp(signUpRequestDto);
-        return ApiResponse.ok();
-    }
+
     //이메일 중복 체크
     @Operation(summary = "이메일 중복 체크 ", description = "이메일 중복 체크 로직 ")
     @GetMapping("/check-email")
@@ -56,7 +50,15 @@ public class MemberController {
     @Operation(summary = "폼 로그인 ", description = "폼 로그인 jwt 토큰 발행 로직 ")
     public ApiResponse<JwtResponse> login(@RequestBody LoginRequest loginRequest) {
         JwtResponse jwtResponse = memberLoginService.login(loginRequest);
-      return ApiResponse.ok(jwtResponse);
+        return ApiResponse.ok(jwtResponse);
+    }
+
+    //폼 회원가입
+    @Operation(summary = "회원가입", description = "폼 회원가입")
+    @PostMapping("/signup")
+    public ApiResponse<Void> signUp(@RequestBody SignupRequestDto signUpRequestDto) {
+        memberSignService.signUp(signUpRequestDto);
+        return ApiResponse.ok();
     }
 
 
@@ -131,7 +133,6 @@ public class MemberController {
 
 
     // 로그아웃 ->
-
     // 등급 조회
     @GetMapping("/me/grade")
     public ApiResponse< Map<String, String>> getMyGrade(@AuthenticationPrincipal UserDetails userDetails) {

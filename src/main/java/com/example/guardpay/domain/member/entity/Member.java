@@ -18,7 +18,6 @@ import java.util.UUID;
 @AllArgsConstructor
 public class Member extends BaseEntity {
 
-    //DB의 PK의미
 @Id
 @GeneratedValue(strategy= GenerationType.IDENTITY)
     private Long memberId;
@@ -48,13 +47,6 @@ public class Member extends BaseEntity {
     @Column(name = "font_size")
     private int fontSize; // 폰트크기
 
-//    @CreatedDate // 엔터티 생성 시 시간 자동 저장
-//    @Column(name = "created_at", updatable = false)
-//    private LocalDateTime createdAt; // 회원가입일시
-//
-//    @LastModifiedDate // 엔터티 수정 시 시간 자동 저장
-//    @Column(name = "updated_at")
-//    private LocalDateTime updatedAt; // 회원정보수정일시
 
     @Column(length = 20)
     private String provider; // 소셜 로그인 제공자
@@ -64,9 +56,6 @@ public class Member extends BaseEntity {
 
     @Column(length = 20)
     private String role; // 사용자 권한
-
-    @Column(length = 512) // ⬅️ [추가] 리프레시 토큰 저장 필드 (넉넉하게)
-    private String refreshToken;
 
     @Column(length = 512)
     private String profileImageUrl;
@@ -86,6 +75,8 @@ public class Member extends BaseEntity {
         this.providerId = providerId;
     }
 
+
+
     //소셜 회원가입 메소드
     public static Member createSocialMember(String email, String nickname, String provider, String providerId) {
         Member member = new Member();
@@ -98,7 +89,6 @@ public class Member extends BaseEntity {
         // 소셜 로그인 사용자는 비밀번호를 사용하지 않으므로, 보안을 위해 임의의 값을 할당
         member.password = UUID.randomUUID().toString();
         member.role = "ROLE_USER"; // 기본 권한 부여
-        // ... grade, points 등 기타 필드 기본값 설정 ...
         member.points = 0;
         member.grade = Grade.주의_필요;
         member.status = "ACTIVE"; // 예: 활성 상태를 기본값으로 지정
@@ -121,9 +111,6 @@ public class Member extends BaseEntity {
         this.password = newPasswordHash;
     }
 
-    public void updateRefreshToken(String refreshToken) {
-        this.refreshToken = refreshToken;
-    }
 
     // 프로필 일괄 수정
     public void updateProfile(String nickname, String passwordHash, Grade grade) {
@@ -151,9 +138,6 @@ public class Member extends BaseEntity {
         this.grade = Grade.valueOf(finalGrade.replace(" ", "_"));
     }
 
-    //public int getBalance() {return this.points;}
-
-    //public void setBalance(int updatedBalance) {this.points = updatedBalance;}
 
 
 }

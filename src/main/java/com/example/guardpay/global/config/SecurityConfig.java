@@ -1,6 +1,7 @@
 package com.example.guardpay.global.config;
 
 import com.example.guardpay.global.auth.CustomOAuth2UserService;
+import com.example.guardpay.global.auth.CustomUserDetailsService;
 import com.example.guardpay.global.auth.OAuth2AuthenticationSuccessHandler;
 import com.example.guardpay.global.jwt.JwtAuthenticationFilter;
 import com.example.guardpay.global.jwt.JwtTokenProvider;
@@ -8,6 +9,9 @@ import com.example.guardpay.global.jwt.JwtTokenProvider;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -27,11 +31,25 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final CustomOAuth2UserService customOAuth2UserService;
-    private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
+    private final CustomUserDetailsService customUserDetailsService;
     private final JwtTokenProvider jwtTokenProvider;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    // AuthenticationManager 빈 등록
+    @Bean
+    public AuthenticationManager authenticationManager(
+            AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
+    }
 
 
+    @Bean
+    public DaoAuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(customUserDetailsService);  // customUserDetailsService로 연결 -> MemberUserDetails 생성
+        provider.setPasswordEncoder(passwordEncoder());  // PasswordEncoder 연결
+        return provider;
+    }
 
     //비번 인코딩
     @Bean
@@ -66,32 +84,18 @@ public class SecurityConfig {
         http.authorizeHttpRequests(auth -> auth
                 .requestMatchers(
                         "/",
-                        "/h2-console/**", // h2-console 허용
-                        "/api/auth/**",
-                        "/oauth2/**",
+                        "/api/v1/auth/*",      // 회원가입 & 로그인 등 인증
+                        "/oauth2/**",            // OAuth2 소셜 로그인
                         "/login/oauth2/**",
-                        "/api/videos/**",
+
+                        // 개발 도구 (운영 환경에서는 제거!)
+                        "/h2-console/**",
                         "/swagger-ui/**",
                         "/swagger-ui.html",
                         "/v3/api-docs/**",
                         "/swagger-resources/**",
-                        "/webjars/**",
-                        //"/api/quiz/**",
-                        "/api/v1/diagnoses/**",
-
-                        "/api/quiz/categories",
-                        "/api/quiz/{categoryId}/list",
-                        "/api/quiz/{categoryId}/{level}/list",
-                        "/api/quiz/{quizId}"
+                        "/webjars/**"
                 ).permitAll()
-                .requestMatchers(
-                        "/api/chat/**",
-                        "/api/quiz/history",
-                        "/api/quiz/progress",
-                        "/api/quiz/level",
-                        "/api/quiz/{quizId}/submit",
-                        "/api/v1/banks/"
-                ).authenticated() // chat 경로는 인증 필요
                 .anyRequest().permitAll()
         );
 
@@ -108,12 +112,21 @@ public class SecurityConfig {
                 })
         );
 
-        // JwtAuthenticationFilter를 UsernamePasswordAuthenticationFilter
+
+        //1. AuthenticationProvider 등록 -> authenticationProvider 찾음
+        http.authenticationProvider(authenticationProvider());
+
+        //2. JwtAuthenticationFilter 추가
         http.addFilterBefore(
-                new JwtAuthenticationFilter(jwtTokenProvider),
+                jwtAuthenticationFilter,
                 UsernamePasswordAuthenticationFilter.class
         );
 
         return http.build();
     }
+
+
+
+
+
 }
