@@ -159,33 +159,36 @@ public class JwtTokenProvider {
         return role;
     }
 
+    // ✅ 핵심 수정 부분!
     public Authentication getAuthentication(String token) {
         Long memberId = getMemberId(token);
         log.info("🔍 [JWT] getAuthentication for memberId: {}", memberId);
 
-        Member m = memberRepository.findById(memberId)
+        // 1. DB에서 Member 조회
+        Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> {
                     log.error("❌ [JWT] Member not found: {}", memberId);
                     return new MemberNotFoundException();
                 });
 
-        String role = m.getRole();
-        log.info("🔍 [JWT] Member role from DB: {}", role);
+        log.info("✅ [JWT] Member found: email={}, role={}", member.getEmail(), member.getRole());
 
-        if (role != null && !role.startsWith("ROLE_")) {
-            role = "ROLE_" + role;
-        }
+        // 2. ✅ MemberUserDetails 생성 (User 대신!)
+        MemberUserDetails userDetails = new MemberUserDetails(member);
 
-        var authorities = List.of(new SimpleGrantedAuthority(
-                role == null ? "ROLE_USER" : role
-        ));
+        log.info("✅ [JWT] MemberUserDetails created - Principal type: {}",
+                userDetails.getClass().getSimpleName());
 
-        var principal = new org.springframework.security.core.userdetails.User(
-                String.valueOf(m.getMemberId()), "", authorities);
+        // 3. Authentication 객체 생성
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                userDetails,  // ✅ MemberUserDetails를 principal로!
+                null,         // credentials
+                userDetails.getAuthorities()
+        );
 
-        log.info("✅ [JWT] Authentication created - principal: {}, authorities: {}",
-                principal.getUsername(), authorities);
+        log.info("✅ [JWT] Authentication created - Principal: {}, Authorities: {}",
+                member.getEmail(), userDetails.getAuthorities());
 
-        return new UsernamePasswordAuthenticationToken(principal, token, authorities);
+        return authentication;
     }
 }

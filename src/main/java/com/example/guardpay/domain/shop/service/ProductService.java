@@ -2,6 +2,8 @@ package com.example.guardpay.domain.shop.service;
 
 import com.example.guardpay.domain.shop.dto.ProductResponseDto;
 import com.example.guardpay.domain.shop.entity.Product;
+import com.example.guardpay.domain.shop.enums.ShopErrorCode;
+import com.example.guardpay.domain.shop.exeption.ShopException;
 import com.example.guardpay.domain.shop.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -35,6 +37,6 @@ public class ProductService {
     //  개별 상품 조회
     public Product getProduct(Long productId) {
         return productRepository.findById(productId)
-                .orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다."));
+                .orElseThrow(() -> new ShopException(ShopErrorCode.PRODUCT_NOT_FOUND));
     }
 }

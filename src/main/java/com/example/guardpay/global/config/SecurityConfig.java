@@ -82,7 +82,8 @@ public class SecurityConfig {
         http.authorizeHttpRequests(auth -> auth
                 .requestMatchers(
                         "/",
-                        "/api/v1/auth/*",      // 회원가입 & 로그인 등 인증
+                        "/api/v1/auth/login",// 회원가입 & 로그인 등 인증
+                        "/api/v1/auth/signup",
                         "/oauth2/**",            // OAuth2 소셜 로그인
                         "/login/oauth2/**",
 
@@ -94,7 +95,7 @@ public class SecurityConfig {
                         "/swagger-resources/**",
                         "/webjars/**"
                 ).permitAll()
-                .anyRequest().permitAll()
+                .anyRequest().authenticated()
         );
 
         http.exceptionHandling(ex -> ex

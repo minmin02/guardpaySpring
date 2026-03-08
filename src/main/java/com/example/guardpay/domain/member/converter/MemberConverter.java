@@ -72,6 +72,7 @@ public class MemberConverter {
                 .password(encodePassword)
                 .nickname(requestDto.getNickname())
                 .role("ROLE_USER")
+                .status("ACTIVE")
                 .points(100000)
                 .build();
     }

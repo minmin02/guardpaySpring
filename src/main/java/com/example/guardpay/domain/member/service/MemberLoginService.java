@@ -46,12 +46,9 @@ public class MemberLoginService {
                 )
         );
 
-
         // 인증된 객체 뽑아냄  (Object 타입이라 캐스팅 가능)
         MemberUserDetails userDetails = (MemberUserDetails) authentication.getPrincipal();
-
         Member member = userDetails.getMember();
-
         String role = member.getRole();
 
         //토큰 생성

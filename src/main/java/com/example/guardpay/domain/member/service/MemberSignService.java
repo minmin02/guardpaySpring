@@ -39,6 +39,9 @@ public class MemberSignService {
                 .build();
     }
 
+
+
+
     private void validateDuplicateMember(SignupRequestDto requestDto) {
 
         if (memberRepository.existsByEmail(requestDto.getEmail())) {

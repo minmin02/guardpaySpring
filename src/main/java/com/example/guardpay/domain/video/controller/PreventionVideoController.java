@@ -4,6 +4,7 @@ import com.example.guardpay.domain.video.dto.req.CategoryWithVideosDto;
 import com.example.guardpay.domain.video.dto.req.PreventionVideoDto;
 import com.example.guardpay.domain.video.dto.req.VideoCategoryDto;
 import com.example.guardpay.domain.video.service.PreventionVideoService;
+import com.example.guardpay.global.jwt.MemberUserDetails;
 import com.example.guardpay.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +28,7 @@ public class PreventionVideoController {
      * 전체 카테고리 목록 조회
      */
     @GetMapping("/categories")
-    public ApiResponse<List<VideoCategoryDto>> getAllCategories(@AuthenticationPrincipal UserDetails userDetails) {
+    public ApiResponse<List<VideoCategoryDto>> getAllCategories(@AuthenticationPrincipal MemberUserDetails userDetails) {
         List<VideoCategoryDto> categories = videoService.getAllCategories();
         return ApiResponse.ok(categories);
     }
@@ -37,7 +38,7 @@ public class PreventionVideoController {
      */
     @GetMapping("/categories/{categoryId}")
     public ApiResponse<CategoryWithVideosDto> getCategoryWithVideos(
-            @PathVariable Long categoryId,@AuthenticationPrincipal UserDetails userDetails) {
+            @PathVariable Long categoryId,@AuthenticationPrincipal MemberUserDetails userDetails) {
         CategoryWithVideosDto result = videoService.getCategoryWithVideos(categoryId);
         return ApiResponse.ok(result);
     }
@@ -47,7 +48,7 @@ public class PreventionVideoController {
      */
     @GetMapping("/{videoId}")
     public ApiResponse<PreventionVideoDto> getVideoDetail(
-            @PathVariable Long videoId,@AuthenticationPrincipal UserDetails userDetails) {
+            @PathVariable Long videoId,@AuthenticationPrincipal MemberUserDetails userDetails) {
         PreventionVideoDto video = videoService.getVideoDetail(videoId);
         return ApiResponse.ok(video);
     }
