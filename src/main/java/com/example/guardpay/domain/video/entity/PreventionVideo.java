@@ -1,5 +1,8 @@
 package com.example.guardpay.domain.video.entity;
 
+import com.example.guardpay.domain.member.entity.Member;
+import com.example.guardpay.domain.shop.entity.ExchangeLog;
+import com.example.guardpay.domain.shop.entity.Product;
 import com.example.guardpay.global.config.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -101,6 +104,9 @@ public class PreventionVideo extends BaseEntity {
         return videoId;
     }
 
+
+    //헬퍼 메소드
+
     // 임베드용 URL 생성
     public String getEmbedUrl() {
         if (youtubeId != null) {
@@ -108,4 +114,6 @@ public class PreventionVideo extends BaseEntity {
         }
         return null;
     }
+
+
 }

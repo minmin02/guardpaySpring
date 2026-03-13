@@ -58,20 +58,19 @@ public class PreventionVideoController {
      * POST /api/videos/{videoId}/view
      */
     @PostMapping("/{videoId}/view")
-    public ResponseEntity<Void> incrementViewCount(
-            @PathVariable Long videoId) {
+    public ApiResponse<Void> incrementViewCount(
+            @PathVariable Long videoId,@AuthenticationPrincipal MemberUserDetails userDetails) {
         videoService.incrementViewCount(videoId);
-        return ResponseEntity.ok().build();
+        return ApiResponse.ok();
     }
 
     /**
      * 인기 영상 목록 조회 (TOP 10)
-     * GET /api/videos/popular
      */
     @GetMapping("/popular")
-    public ResponseEntity<List<PreventionVideoDto>> getPopularVideos() {
+    public ApiResponse<List<PreventionVideoDto>> getPopularVideos() {
         List<PreventionVideoDto> videos = videoService.getPopularVideos();
-        return ResponseEntity.ok(videos);
+        return ApiResponse.ok(videos);
     }
 
     /**
@@ -79,8 +78,8 @@ public class PreventionVideoController {
      * GET /api/videos/all
      */
     @GetMapping("/all")
-    public ResponseEntity<List<PreventionVideoDto>> getAllVideos() {
+    public ApiResponse<List<PreventionVideoDto>> getAllVideos() {
         List<PreventionVideoDto> videos = videoService.getAllVideos();
-        return ResponseEntity.ok(videos);
+        return ApiResponse.ok(videos);
     }
 }

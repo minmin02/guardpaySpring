@@ -36,4 +36,12 @@ public class Progress {
         this.updateAt = updateAt;
     }
 
+    public void updateProgress(int increase) {
+        this.progress += increase;
+
+        if (this.progress > 100) {
+            this.progress = 100;
+        }
+        this.updateAt = LocalDateTime.now();
+    }
 }

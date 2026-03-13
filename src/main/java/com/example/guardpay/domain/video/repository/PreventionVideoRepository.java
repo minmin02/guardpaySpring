@@ -28,4 +28,6 @@ public interface PreventionVideoRepository extends JpaRepository<PreventionVideo
 
     // 인기 영상 조회 (조회수 높은 순)
     List<PreventionVideo> findTop10ByIsActiveTrueOrderByViewCountDesc();
+
+
 }

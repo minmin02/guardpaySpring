@@ -4,6 +4,7 @@ import com.example.guardpay.domain.member.entity.Member;
 import com.example.guardpay.domain.member.enums.MemberErrorCode;
 import com.example.guardpay.domain.member.exception.MemberException;
 import com.example.guardpay.domain.member.repository.MemberRepository;
+import com.example.guardpay.domain.shop.converter.ShopConverter;
 import com.example.guardpay.domain.shop.dto.ExchangeHistoryItemDto;
 import com.example.guardpay.domain.shop.dto.ExchangeResponseDto;
 import com.example.guardpay.domain.shop.entity.ExchangeLog;
@@ -11,6 +12,7 @@ import com.example.guardpay.domain.shop.entity.Product;
 import com.example.guardpay.domain.shop.enums.ShopErrorCode;
 import com.example.guardpay.domain.shop.exeption.ShopException;
 import com.example.guardpay.domain.shop.repository.ExchangeLogRepository;
+import com.example.guardpay.domain.video.converter.PreventionVideoConverter;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -32,6 +34,7 @@ public class ExchangeService {
     //엔티티의 생명 주기 관리
     // entityManager.persist(member);  영속성 컨텍스트에 저장
     private final EntityManager entityManager;
+
     // Mock 쿠폰 코드 생성기
     private String generateMockCouponCode() {
         return "MOCK-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
@@ -43,11 +46,9 @@ public class ExchangeService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
 
-
         Product product = productService.getProduct(productId);
 
-
-        // 3. 포인트 검증
+        //  포인트 검증
         if (member.getPoints() < product.getPricePoint()) {
             throw new ShopException(ShopErrorCode.INSUFFICIENT_POINTS);
         }
@@ -61,49 +62,22 @@ public class ExchangeService {
         LocalDateTime validUntil = now.plusMonths(6);
 
         // 교환 내역 저장
-        ExchangeLog exchangeLog = exchangeLogRepository.save(
-                ExchangeLog.builder()
-                        .member(member)
-                        .product(product)
-                        .pointsUsed(Integer.valueOf(product.getPricePoint()))
-                        .status("USEABLE")
-                        .couponCode(couponCode)
-                        .validUntil(validUntil)
-                        .exchangedAt(now)
-                        .build()
-        );
+        ExchangeLog exchangeLog = ExchangeLog.createExchangeLog(member, product, couponCode, validUntil);
+        exchangeLogRepository.save(exchangeLog);
 
         // 응답 DTO 생성
-        return ExchangeResponseDto.builder()
-                .productId(productId)
-                .brand(product.getBrand())
-                .name(product.getName())
-                .thumbnail(product.getThumbnail())
-                .couponCode(couponCode)
-                .validUntil(validUntil.toString())
-                .build();
+        return ShopConverter.toResponseDto(product, couponCode, validUntil);
     }
 
     // 교환 내역 조회
     public List<ExchangeHistoryItemDto> getExchangeHistory(Long memberId) {
-
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
 
-        return exchangeLogRepository.findByMember(member).stream()
-                .map(log -> ExchangeHistoryItemDto.builder()
-                        .exchangeId(log.getExchangeId())
-                        .productName(log.getProduct().getName())
-                        .brandName(log.getProduct().getBrand())
-                        .pointsUsed(log.getPointsUsed())
-                        .status(log.getStatus())
-                        .exchangedAt(log.getExchangedAt().toString())
-                        .couponCode(log.getCouponCode())
-                        .validUntil(log.getValidUntil().toString())
-                        .thumbnail(log.getProduct().getThumbnail())
-                        .build()
-                )
-                .toList();
+        List<ExchangeHistoryItemDto> responses=exchangeLogRepository.findByMemberWithProduct(member).stream()
+                .map(log -> PreventionVideoConverter.toDto(log)).toList();
+
+        return responses;
     }
 
 }

@@ -42,7 +42,7 @@ public class FinancialEducationService {
         Resource systemResource = resourceLoader.getResource(systemPromptPath);
 
         if (!systemResource.exists()) {
-            log.error("❌ System prompt file not found at: {}", systemPromptPath);
+            log.error(" System prompt file not found at: {}", systemPromptPath);
             throw new IOException("System prompt file not found: " + systemPromptPath);
         }
 
@@ -54,7 +54,7 @@ public class FinancialEducationService {
         Resource userResource = resourceLoader.getResource(userPromptPath);
 
         if (!userResource.exists()) {
-            log.error("❌ User prompt file not found at: {}", userPromptPath);
+            log.error(" User prompt file not found at: {}", userPromptPath);
             throw new IOException("User prompt file not found: " + userPromptPath);
         }
 
@@ -63,7 +63,7 @@ public class FinancialEducationService {
                 StandardCharsets.UTF_8
         );
 
-        log.info("✅ Prompts loaded successfully");
+        log.info(" Prompts loaded successfully");
         log.info("   - System prompt length: {} chars", systemPrompt.length());
         log.info("   - User template length: {} chars", userPromptTemplate.length());
     }
@@ -94,13 +94,13 @@ public class FinancialEducationService {
                 geminiConfig.getKey()
         );
 
-        // ✅ 프롬프트 길이 체크
+        //  프롬프트 길이 체크
         String fullPrompt = systemPrompt + "\n\n" + userPrompt;
         log.info("📝 Full prompt length: {} chars", fullPrompt.length());
 
-        // ✅ 프롬프트가 너무 길면 잘라내기 (Gemini 토큰 제한 대비)
+        //  프롬프트가 너무 길면 잘라내기 (Gemini 토큰 제한 대비)
         if (fullPrompt.length() > 30000) {
-            log.warn("⚠️ Prompt too long, truncating to 30000 chars");
+            log.warn("️ Prompt too long, truncating to 30000 chars");
             fullPrompt = fullPrompt.substring(0, 30000);
         }
 
@@ -116,9 +116,9 @@ public class FinancialEducationService {
                         "temperature", 0.7,
                         "topK", 40,
                         "topP", 0.95,
-                        "maxOutputTokens", 8192  // ✅ 답변 길이 증가 (2048 → 8192)
+                        "maxOutputTokens", 8192  //  답변 길이 증가 (2048 → 8192)
                 ),
-                // ✅ 안전 설정 완화 추가
+                //  안전 설정 완화 추가
                 "safetySettings", List.of(
                         Map.of(
                                 "category", "HARM_CATEGORY_HARASSMENT",
@@ -151,21 +151,21 @@ public class FinancialEducationService {
                     .bodyToMono(Map.class)
                     .block();
 
-            // ✅ 전체 응답 로그 출력 (디버깅용)
-            log.info("📥 Full Gemini Response: {}", response);
+            //  전체 응답 로그 출력 (디버깅용)
+            log.info(" Full Gemini Response: {}", response);
 
-            // ✅ 응답 구조 확인
+            //  응답 구조 확인
             if (response == null) {
-                log.error("❌ Response is null");
+                log.error(" Response is null");
                 return "죄송합니다. 서버 응답이 없습니다. 잠시 후 다시 시도해 주세요.";
             }
 
-            // ✅ 에러 응답 체크
+            //  에러 응답 체크
             if (response.containsKey("error")) {
                 Map<String, Object> error = (Map<String, Object>) response.get("error");
                 String errorMessage = (String) error.get("message");
                 String errorCode = String.valueOf(error.get("code"));
-                log.error("❌ Gemini API Error: {} (code: {})", errorMessage, errorCode);
+                log.error(" Gemini API Error: {} (code: {})", errorMessage, errorCode);
 
                 // 사용자 친화적 메시지 반환
                 if (errorCode.equals("400")) {
@@ -178,12 +178,12 @@ public class FinancialEducationService {
                 return "죄송합니다. 오류가 발생했습니다: " + errorMessage;
             }
 
-            // ✅ candidates 확인
+            // candidates 확인
             List<Map<String, Object>> candidates =
                     (List<Map<String, Object>>) response.get("candidates");
 
             if (candidates == null || candidates.isEmpty()) {
-                log.error("❌ No candidates in response");
+                log.error(" No candidates in response");
 
                 // promptFeedback 확인
                 if (response.containsKey("promptFeedback")) {
@@ -199,18 +199,18 @@ public class FinancialEducationService {
                 return "죄송합니다. 응답을 생성할 수 없습니다. 다시 시도해 주세요.";
             }
 
-            log.info("✅ Found {} candidate(s)", candidates.size());
+            log.info(" Found {} candidate(s)", candidates.size());
 
-            // ✅ content 추출
+            // content 추출
             Map<String, Object> firstCandidate = candidates.get(0);
             log.info("   - First candidate keys: {}", firstCandidate.keySet());
 
-            // ✅ finishReason 체크 (안전 필터 확인)
+            //  finishReason 체크 (안전 필터 확인)
             String finishReason = (String) firstCandidate.get("finishReason");
             log.info("   - Finish reason: {}", finishReason);
 
             if ("SAFETY".equals(finishReason)) {
-                log.error("❌ Response blocked by safety filter");
+                log.error(" Response blocked by safety filter");
                 List<Map<String, Object>> safetyRatings =
                         (List<Map<String, Object>>) firstCandidate.get("safetyRatings");
                 if (safetyRatings != null) {
@@ -220,7 +220,7 @@ public class FinancialEducationService {
             }
 
             if ("RECITATION".equals(finishReason)) {
-                log.error("❌ Response blocked due to recitation");
+                log.error(" Response blocked due to recitation");
                 return "죄송합니다. 저작권 문제로 인해 응답을 생성할 수 없습니다. 다른 질문을 시도해 주세요.";
             }
 
@@ -228,7 +228,7 @@ public class FinancialEducationService {
                     (Map<String, Object>) firstCandidate.get("content");
 
             if (content == null) {
-                log.error("❌ No content in first candidate");
+                log.error(" No content in first candidate");
                 log.error("   - Candidate data: {}", firstCandidate);
                 return "죄송합니다. 응답 내용이 없습니다. 다시 시도해 주세요.";
             }
@@ -237,7 +237,7 @@ public class FinancialEducationService {
                     (List<Map<String, Object>>) content.get("parts");
 
             if (parts == null || parts.isEmpty()) {
-                log.error("❌ No parts in content");
+                log.error(" No parts in content");
                 log.error("   - Content data: {}", content);
                 log.error("   - Finish reason: {}", finishReason);
                 return "죄송합니다. 응답 데이터가 비어있습니다. 질문을 다시 작성해 주세요.";
@@ -246,24 +246,24 @@ public class FinancialEducationService {
             String text = (String) parts.get(0).get("text");
 
             if (text == null || text.isEmpty()) {
-                log.error("❌ Empty text in parts");
+                log.error(" Empty text in parts");
                 return "죄송합니다. 빈 응답을 받았습니다. 다시 시도해 주세요.";
             }
 
-            log.info("✅ Response text length: {} chars", text.length());
-            log.info("📄 Response preview: {}...", text.substring(0, Math.min(200, text.length())));
+            log.info(" Response text length: {} chars", text.length());
+            log.info(" Response preview: {}...", text.substring(0, Math.min(200, text.length())));
 
             return text;
 
         } catch (Exception e) {
-            log.error("❌ Gemini API call failed", e);
+            log.error(" Gemini API call failed", e);
 
-            // ✅ 상세 에러 정보 출력
+            //  상세 에러 정보 출력
             if (e.getMessage() != null) {
                 log.error("   - Error message: {}", e.getMessage());
             }
 
-            // ✅ 사용자 친화적 에러 메시지 반환 (500 오류 방지)
+            //  사용자 친화적 에러 메시지 반환 (500 오류 방지)
             return "죄송합니다. 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
         }
     }

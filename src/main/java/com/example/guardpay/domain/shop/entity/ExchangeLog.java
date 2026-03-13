@@ -35,4 +35,17 @@ public class ExchangeLog {
     private LocalDateTime validUntil;
 
     private LocalDateTime exchangedAt;
+
+    // 헬퍼 메소드
+    public static ExchangeLog createExchangeLog(Member member, Product product, String couponCode, LocalDateTime validUntil) {
+        return ExchangeLog.builder()
+                .member(member)
+                .product(product)
+                .pointsUsed(product.getPricePoint())
+                .status("USEABLE")
+                .couponCode(couponCode)
+                .validUntil(validUntil)
+                .exchangedAt(LocalDateTime.now())
+                .build();
+    }
 }

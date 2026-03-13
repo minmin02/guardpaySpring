@@ -1,6 +1,7 @@
 package com.example.guardpay.domain.video.service;
 
 
+import com.example.guardpay.domain.video.exception.VideoException;
 import com.example.guardpay.domain.video.converter.PreventionVideoConverter;
 import com.example.guardpay.domain.video.converter.VideoCategoryConverter;
 import com.example.guardpay.domain.video.dto.req.CategoryWithVideosDto;
@@ -8,6 +9,7 @@ import com.example.guardpay.domain.video.dto.req.PreventionVideoDto;
 import com.example.guardpay.domain.video.dto.req.VideoCategoryDto;
 import com.example.guardpay.domain.video.entity.PreventionVideo;
 import com.example.guardpay.domain.video.entity.VideoCategory;
+import com.example.guardpay.domain.video.enums.VideoErrorCode;
 import com.example.guardpay.domain.video.repository.PreventionVideoRepository;
 import com.example.guardpay.domain.video.repository.VideoCategoryRepository;
 import lombok.RequiredArgsConstructor;
@@ -46,7 +48,7 @@ public class PreventionVideoService {
      */
     public CategoryWithVideosDto getCategoryWithVideos(Long categoryId) {
         VideoCategory category = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new IllegalArgumentException("카테고리를 찾을 수 없습니다: " + categoryId));
+                .orElseThrow(() -> new VideoException(VideoErrorCode.VIDEO_NOT_FOUND));
 
         List<PreventionVideo> videos = videoRepository
                 .findByCategoryIdAndIsActiveTrueOrderByDisplayOrderAsc(categoryId);
@@ -58,7 +60,7 @@ public class PreventionVideoService {
                 .categoryIcon(category.getIcon())
 
                 .videos(videos.stream()
-                        .map(videoConverter::toDto)  // 컨버터 사용
+                        .map(videoConverter::toDto)
                         .collect(Collectors.toList()))
                 .build();
     }
@@ -68,9 +70,8 @@ public class PreventionVideoService {
      */
     public PreventionVideoDto getVideoDetail(Long videoId) {
         PreventionVideo video = videoRepository.findById(videoId)
-                .orElseThrow(() -> new IllegalArgumentException("영상을 찾을 수 없습니다: " + videoId));
-
-        return videoConverter.toDto(video);  // 컨버터 사용
+                .orElseThrow(() -> new VideoException(VideoErrorCode.VIDEO_NOT_FOUND));
+        return videoConverter.toDto(video);
     }
 
     /**
@@ -86,9 +87,8 @@ public class PreventionVideoService {
      */
     public List<PreventionVideoDto> getPopularVideos() {
         List<PreventionVideo> videos = videoRepository.findTop10ByIsActiveTrueOrderByViewCountDesc();
-
         return videos.stream()
-                .map(videoConverter::toDto)  // 컨버터 사용
+                .map(videoConverter::toDto)
                 .collect(Collectors.toList());
     }
 
@@ -97,9 +97,8 @@ public class PreventionVideoService {
      */
     public List<PreventionVideoDto> getAllVideos() {
         List<PreventionVideo> videos = videoRepository.findByIsActiveTrueOrderByCreatedAtDesc();
-
         return videos.stream()
-                .map(videoConverter::toDto)  // 컨버터 사용
+                .map(videoConverter::toDto)
                 .collect(Collectors.toList());
     }
 
