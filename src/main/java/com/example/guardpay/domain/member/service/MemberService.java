@@ -24,7 +24,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class MemberService {
 
-    // 의존성 주입 ㄴ
+    // 의존성 주입
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final MemberConverter memberConverter;

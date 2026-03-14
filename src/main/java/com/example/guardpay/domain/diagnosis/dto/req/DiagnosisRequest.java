@@ -1,4 +1,4 @@
-package com.example.guardpay.domain.diagnosis.dto.request;
+package com.example.guardpay.domain.diagnosis.dto.req;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;

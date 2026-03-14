@@ -1,6 +1,8 @@
 package com.example.guardpay.domain.member.entity;
 
 import com.example.guardpay.domain.member.data.Grade;
+import com.example.guardpay.domain.member.enums.MemberErrorCode;
+import com.example.guardpay.domain.member.exception.MemberException;
 import com.example.guardpay.global.config.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -75,6 +77,15 @@ public class Member extends BaseEntity {
         this.providerId = providerId;
     }
 
+    public void addPoints(int points) {
+        this.points += points;
+    }
+
+    public void checkBalance(int amount) {
+        if (this.points < amount) {
+            throw new MemberException(MemberErrorCode.INSUFFICIENT_BALANCE);
+        }
+    }
 
 
     //소셜 회원가입 메소드

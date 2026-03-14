@@ -6,7 +6,5 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.List;
 
 public interface BeneficiaryRepository extends JpaRepository<Beneficiary, Long> {
-
-    @Query("SELECT b FROM Beneficiary b WHERE b.active = true ORDER BY FUNCTION('RAND')")
-    List<Beneficiary> findRandomBeneficiaries();
+    List<Beneficiary> findByActiveTrue();
 }

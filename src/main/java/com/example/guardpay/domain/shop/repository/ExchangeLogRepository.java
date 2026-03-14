@@ -11,9 +11,11 @@ public interface ExchangeLogRepository extends JpaRepository<ExchangeLog, Long> 
 
     List<ExchangeLog> findByMember(Member member);
 
-    @Query("select l from ExchangeLog l"
-            +"join fetch l.product"+ // log를 가져올 때 product도 한 몸으로 가져옴
-            "where l.member=:member")
+    @Query("""
+    select l from ExchangeLog l
+    join fetch l.product
+    where l.member = :member
+""")
     List<ExchangeLog>findByMemberWithProduct( Member member);
 
 

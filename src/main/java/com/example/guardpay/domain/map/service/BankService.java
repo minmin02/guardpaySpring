@@ -1,18 +1,15 @@
 package com.example.guardpay.domain.map.service;
 
+import com.example.guardpay.domain.map.converter.MapConverter;
 import com.example.guardpay.domain.map.dto.req.BankSearchReq;
 import com.example.guardpay.domain.map.dto.res.BankRes;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 
-import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -23,81 +20,32 @@ public class BankService {
     private String kakaoRestApiKey;
 
     private final RestTemplate restTemplate;
+    private final KakaoLocalClient kakaoLocalClient;
 
-    /**
-     * 카카오 로컬 API로 은행 검색 (실시간)
-     */
     public List<BankRes> findBanksNearby(BankSearchReq request) {
-        try {
-            log.info("🏦 은행 검색 시작 - 이름: {}, 위치: ({}, {}), 반경: {}m",
-                    request.getBankName(),
-                    request.getLatitude(),
-                    request.getLongitude(),
-                    request.getRadius());
 
-            // 카카오 로컬 API - 키워드 검색
-            String url = UriComponentsBuilder
-                    .fromHttpUrl("https://dapi.kakao.com/v2/local/search/keyword.json")
-                    .queryParam("query", request.getBankName())
-                    .queryParam("x", request.getLongitude())
-                    .queryParam("y", request.getLatitude())
-                    .queryParam("radius", request.getRadius())
-                    .queryParam("sort", "distance")  // 거리순 정렬
-                    .queryParam("size", 15)  // 최대 15개
-                    .encode(StandardCharsets.UTF_8)
-                    .toUriString();
+        // 1. API 호출
+        List<Map<String, Object>> documents = kakaoLocalClient.searchKeywords(
+                request.getBankName(),
+                request.getLatitude(),
+                request.getLongitude(),
+                request.getRadius()
+        );
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.set("Authorization", "KakaoAK " + kakaoRestApiKey);
-            headers.setContentType(MediaType.APPLICATION_JSON);
-
-            HttpEntity<String> entity = new HttpEntity<>(headers);
-
-            ResponseEntity<Map> response = restTemplate.exchange(
-                    url,
-                    HttpMethod.GET,
-                    entity,
-                    Map.class
-            );
-
-            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
-                Map<String, Object> result = response.getBody();
-                List<Map<String, Object>> documents = (List<Map<String, Object>>) result.get("documents");
-
-                if (documents == null || documents.isEmpty()) {
-                    log.warn("⚠️ 검색 결과 없음");
-                    return List.of();
-                }
-
-                // 은행만 필터링 (카테고리 확인)
-                List<BankRes> bankResList = documents.stream()
-                        .filter(this::isBankCategory)
-                        .map(doc -> convertToRes(doc, request.getLatitude(), request.getLongitude()))
-                        .collect(Collectors.toList());
-
-                log.info("✅ 은행 검색 완료: {}개 결과", bankResList.size());
-                return bankResList;
-            }
-
-            return List.of();
-
-        } catch (Exception e) {
-            log.error("❌ 은행 검색 실패: {}", e.getMessage(), e);
-            throw new RuntimeException("은행 검색 중 오류 발생: " + e.getMessage());
-        }
+        return documents.stream()
+                .filter(this::isBankCategory)
+                .map(MapConverter::toBankRes)
+                .toList();
     }
 
     /**
      * 은행 카테고리인지 확인
      */
-    private boolean isBankCategory(Map<String, Object> document) {
-        String categoryName = (String) document.get("category_name");
-        if (categoryName == null) return false;
-
-        // 은행 카테고리: "금융,보험 > 은행"
-        return categoryName.contains("은행") ||
-                categoryName.contains("금융");
+    private boolean isBankCategory(Map<String, Object> doc) {
+        String category = (String) doc.get("category_name");
+        return category != null && (category.contains("은행") || category.contains("금융"));
     }
+
 
     /**
      * 카카오 API 응답을 BankRes로 변환

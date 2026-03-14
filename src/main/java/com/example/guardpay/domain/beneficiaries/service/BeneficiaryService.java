@@ -1,12 +1,23 @@
 package com.example.guardpay.domain.beneficiaries.service;
 
+import com.example.guardpay.domain.beneficiaries.converter.BeneficiaryConverter;
+import com.example.guardpay.domain.beneficiaries.converter.TransferConverter;
+import com.example.guardpay.domain.beneficiaries.dto.res.BeneficiaryResponseDto;
+import com.example.guardpay.domain.beneficiaries.dto.res.TransferResponse;
 import com.example.guardpay.domain.beneficiaries.entity.*;
+import com.example.guardpay.domain.beneficiaries.enums.BeneficiaryErrorCode;
+import com.example.guardpay.domain.beneficiaries.exception.BeneficiaryException;
 import com.example.guardpay.domain.beneficiaries.repository.*;
 import com.example.guardpay.domain.member.entity.Member;
+import com.example.guardpay.domain.member.enums.MemberErrorCode;
+import com.example.guardpay.domain.member.exception.MemberException;
 import com.example.guardpay.domain.member.repository.MemberRepository;
+import com.example.guardpay.domain.quiz.enums.QuizErrorCode;
+import com.example.guardpay.domain.quiz.exception.QuizException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -19,78 +30,37 @@ public class BeneficiaryService {
     private final TransferHistoryRepository transferHistoryRepository;
     private final MemberRepository memberRepository;
 
-    public Map<String, Object> getRandomBeneficiaries() {
-        List<Beneficiary> list = beneficiaryRepository.findRandomBeneficiaries();
-        List<Map<String, Object>> result = new ArrayList<>();
 
-        list.stream().limit(4).forEach(b -> {
-            result.add(Map.of(
-                    "id", b.getId(),
-                    "nickname", b.getNickname(),
-                    "bankName", b.getBankName(),
-                    "accountNumber", b.getAccountNumber(),
-                    // 추가
-                    "accountHolderName", b.getAccountHolderName()
-            ));
-        });
-
-        return Map.of(
-                "status", 200,
-                "message", "가상 계좌 조회 성공",
-                "data", result
-        );
+    public List<BeneficiaryResponseDto> getRandomBeneficiaries(Long memberId) {
+        List<Beneficiary> beneficiaries = beneficiaryRepository.findByActiveTrue();
+        List<Beneficiary> shuffled = new ArrayList<>(beneficiaries);
+        // 컬렉션 shuffle 메서드 사용
+        Collections.shuffle(shuffled);
+        return BeneficiaryConverter.toResponseDtoList(shuffled.stream().limit(4).toList());
     }
 
-    public Map<String, Object> getBeneficiaryDetail(Long id) {
-        Beneficiary b = beneficiaryRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "존재하지 않는 계좌입니다."));
-        return Map.of(
-                "status", 200,
-                "message", "계좌 상세 조회 성공",
-                "data", Map.of(
-                        "nickname", b.getNickname(),
-                        "bankName", b.getBankName(),
-                        "accountNumber", b.getAccountNumber(),
-                        "accountHolderName", b.getAccountHolderName()
-                )
-        );
+    public BeneficiaryResponseDto getBeneficiaryDetail(Long memberId, Long id) {
+        Beneficiary beneficiary = beneficiaryRepository.findById(id)
+                .orElseThrow(() -> new QuizException(QuizErrorCode.BENEFICIARY_NOT_FOUND));
+        return BeneficiaryConverter.toResponseDto(beneficiary);
     }
 
-    public Map<String, Object> transfer(Long memberId, Long beneficiaryId, int amount) {
+    @Transactional
+    public TransferResponse transfer(Long memberId, Long beneficiaryId, int amount) {
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "회원 정보가 없습니다."));
-        Beneficiary b = beneficiaryRepository.findById(beneficiaryId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "잘못된 송금 대상입니다."));
+                .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
+        Beneficiary beneficiary = beneficiaryRepository.findById(beneficiaryId)
+                .orElseThrow(() -> new BeneficiaryException(BeneficiaryErrorCode.BENEFICIARY_NOT_FOUND));
 
-        if (member.getPoints() < amount)
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "잔액이 부족합니다.");
-
+        member.checkBalance(amount);
         int reward = 100;
-        int updatedBalance = member.getPoints() + reward;
-        member.setPoints(updatedBalance);
-        memberRepository.save(member);
+        member.addPoints(reward);
 
-        TransferHistory history = TransferHistory.builder()
-                .member(member)
-                .beneficiaryNickname(b.getNickname())
-                .bankName(b.getBankName())
-                .accountNumber(b.getAccountNumber())
-                .amount(amount)
-                .reward(reward)
-                .updatedBalance(updatedBalance)
-                .status("COMPLETED")
-                .timestamp(LocalDateTime.now())
-                .build();
+        TransferHistory history = TransferConverter.toEntity(member, beneficiary, amount, reward);
         transferHistoryRepository.save(history);
 
-        return Map.of(
-                "status", 200,
-                "message", "송금이 완료되었습니다.",
-                "data", Map.of(
-                        "transactionId", history.getTransactionId(),
-                        "updatedBalance", updatedBalance,
-                        "reward", reward
-                )
-        );
+        return TransferConverter.toResponse(history);
     }
+
+
 }
